@@ -40,5 +40,11 @@ EXPOSE 3000
 # Define environment variable
 ENV METAMCP_API_KEY=$METAMCP_API_KEY
 
+# Install curl
+RUN apk add --no-cache curl
+
+RUN curl -LsSf https://astral.sh/uv/install.sh -o install.sh
+RUN sh install.sh
+
 # Run the application
 ENTRYPOINT ["node", "dist/index.js"]
