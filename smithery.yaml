@@ -17,4 +17,4 @@ startCommand:
   commandFunction:
     # A function that produces the CLI command to start the MCP on stdio.
     |-
-    (config) => ({ command: 'node', args: ['dist/index.js'], env: { METAMCP_API_KEY: config.metamcpApiKey, ...(config.metamcpApiBaseUrl && { METAMCP_API_BASE_URL: config.metamcpApiBaseUrl }) } })
+    (config) => ({ command: 'npx', args: ['-y', '@metamcp/mcp-server-metamcp'], env: { METAMCP_API_KEY: config.metamcpApiKey, ...(config.metamcpApiBaseUrl && { METAMCP_API_BASE_URL: config.metamcpApiBaseUrl }) } })
