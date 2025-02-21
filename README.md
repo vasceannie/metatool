@@ -7,7 +7,7 @@ MetaMCP MCP Server is a proxy server that joins multiple MCP⁠ servers into one
 ## Installation
 
 ```bash
-export METATOOL_API_KEY=<env>
+export METAMCP_API_KEY=<env>
 npx -y @metamcp/mcp-server-metamcp
 ```
 
@@ -20,8 +20,8 @@ npx -y @metamcp/mcp-server-metamcp
 
 ## Environment Variables
 
-- METATOOL_API_KEY: Required. Obtained from MetaMCP App’s “API Keys” page (https://metamcp.com/api-keys).
-- METATOOL_API_BASE_URL: Optional override for MetaMCP App URL (e.g. http://localhost:12005).
+- METAMCP_API_KEY: Required. Obtained from MetaMCP App’s “API Keys” page (https://metamcp.com/api-keys).
+- METAMCP_API_BASE_URL: Optional override for MetaMCP App URL (e.g. http://localhost:12005).
 
 ## Architecture Overview
 

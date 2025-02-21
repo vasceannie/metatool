@@ -3,8 +3,8 @@ import { StdioServerParameters } from "@modelcontextprotocol/sdk/client/stdio.js
 import { getDefaultEnvironment } from "./utils.js";
 
 let _mcpServersCache: Record<string, StdioServerParameters> | null = null;
-const METATOOL_API_BASE_URL =
-  process.env.METATOOL_API_BASE_URL || "https://metamcp.com";
+const METAMCP_API_BASE_URL =
+  process.env.METAMCP_API_BASE_URL || "https://metamcp.com";
 
 export async function getMcpServers(
   forceRefresh: boolean = false
@@ -14,9 +14,9 @@ export async function getMcpServers(
   }
 
   try {
-    const headers = { Authorization: `Bearer ${process.env.METATOOL_API_KEY}` };
+    const headers = { Authorization: `Bearer ${process.env.METAMCP_API_KEY}` };
     const response = await axios.get(
-      `${METATOOL_API_BASE_URL}/api/mcp-servers`,
+      `${METAMCP_API_BASE_URL}/api/mcp-servers`,
       { headers }
     );
     const data = response.data;
