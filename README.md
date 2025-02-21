@@ -13,7 +13,7 @@ MetaMCP MCP Server is a proxy server that joins multiple MCP⁠ servers into one
 To install MetaMCP MCP Server for Claude Desktop automatically via [Smithery](https://smithery.ai/server/@metatool-ai/mcp-server-metamcp):
 
 ```bash
-npx -y @smithery/cli install @metatool-ai/mcp-server-metamcp --client claude
+npx -y @smithery/cli install @metamcp/mcp-server-metamcp --client claude
 ```
 
 ### Manual Installation
