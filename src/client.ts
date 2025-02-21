@@ -19,7 +19,7 @@ export const createMetaMcpClient = (
   const client = new Client(
     {
       name: "MetaMCP",
-      version: "0.0.8",
+      version: "0.0.9",
     },
     {
       capabilities: {
