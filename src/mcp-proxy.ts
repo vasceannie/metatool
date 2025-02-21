@@ -344,7 +344,7 @@ export const createServer = async () => {
       );
 
       return {
-        templates: allTemplates,
+        resourceTemplates: allTemplates,
         nextCursor: request.params?.cursor,
       };
     }

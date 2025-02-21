@@ -4,7 +4,8 @@
   "description": "MCP Server MetaMCP manages all your other MCPs in one MCP.",
   "scripts": {
     "build": "tsc && shx chmod +x dist/*.js",
-    "watch": "tsc --watch"
+    "watch": "tsc --watch",
+    "inspector": "npx @modelcontextprotocol/inspector dist/index.js"
   },
   "repository": {
     "type": "git",
