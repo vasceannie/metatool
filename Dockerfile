@@ -38,7 +38,7 @@ RUN npm ci --omit=dev
 EXPOSE 3000
 
 # Define environment variable
-ENV METATOOL_API_KEY=your_api_key_here
+ENV METAMCP_API_KEY=your_api_key_here
 
 # Run the application
 ENTRYPOINT ["node", "dist/index.js"]

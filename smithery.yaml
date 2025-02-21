@@ -6,16 +6,15 @@ startCommand:
     # JSON Schema defining the configuration options for the MCP.
     type: object
     required:
-      - metatoolApiKey
+      - metamcpApiKey
     properties:
-      metatoolApiKey:
+      metamcpApiKey:
         type: string
-        description: The API key for the MetaMCP server. Required for server operation.
-      metatoolApiBaseUrl:
+        description: The API key from metamcp.com/api-keys. Required.
+      metamcpApiBaseUrl:
         type: string
-        description: Optional override for the MetaMCP App URL (default is the
-          production URL).
+        description: Optional override for the MetaMCP App URL (default is https://metamcp.com).
   commandFunction:
     # A function that produces the CLI command to start the MCP on stdio.
     |-
-    (config) => ({ command: 'node', args: ['dist/index.js'], env: { METATOOL_API_KEY: config.metatoolApiKey, ...(config.metatoolApiBaseUrl && { METATOOL_API_BASE_URL: config.metatoolApiBaseUrl }) } })
+    (config) => ({ command: 'node', args: ['dist/index.js'], env: { METAMCP_API_KEY: config.metamcpApiKey, ...(config.metamcpApiBaseUrl && { METAMCP_API_BASE_URL: config.metamcpApiBaseUrl }) } })
