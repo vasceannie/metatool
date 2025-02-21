@@ -1,7 +1,5 @@
 # MetaMCP MCP Server
 
-[![smithery badge](https://smithery.ai/badge/@metatool-ai/mcp-server-metamcp)](https://smithery.ai/server/@metatool-ai/mcp-server-metamcp)
-
 [https://metamcp.com](https://metamcp.com): The One MCP to manage all your MCPs
 
 MetaMCP MCP Server is a proxy server that joins multiple MCP⁠ servers into one. It fetches tool/prompt/resource configurations from MetaMCP App⁠ and routes tool/prompt/resource requests to the correct underlying server.
@@ -10,16 +8,27 @@ MetaMCP MCP Server is a proxy server that joins multiple MCP⁠ servers into one
 
 ### Installing via Smithery
 
-To install MetaMCP MCP Server for Claude Desktop automatically via [Smithery](https://smithery.ai/server/@metatool-ai/mcp-server-metamcp):
-
-```bash
-npx -y @smithery/cli install @metamcp/mcp-server-metamcp --client claude
-```
+The installation from Smithery doesn't work on cloud yet. Please install manually for now.
 
 ### Manual Installation
+
 ```bash
 export METAMCP_API_KEY=<env>
 npx -y @metamcp/mcp-server-metamcp
+```
+
+```json
+{
+  "mcpServers": {
+    "MetaMCP": {
+      "command": "npx",
+      "args": ["-y", "@metamcp/mcp-server-metamcp"],
+      "env": {
+        "METAMCP_API_KEY": "<your api key>"
+      }
+    }
+  }
+}
 ```
 
 ## Highlights
