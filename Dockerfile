@@ -37,12 +37,10 @@ RUN npm ci --omit=dev
 # Make port 3000 available to the world outside this container
 EXPOSE 3000
 
-# Define environment variable
-ENV METAMCP_API_KEY=$METAMCP_API_KEY
-
 # Install curl
 RUN apk add --no-cache curl
 
+# Install uv
 RUN curl -LsSf https://astral.sh/uv/install.sh -o install.sh
 RUN sh install.sh
 
