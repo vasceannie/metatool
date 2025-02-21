@@ -1,6 +1,6 @@
 {
   "name": "@metamcp/mcp-server-metamcp",
-  "version": "0.0.9",
+  "version": "0.1.0",
   "description": "MCP Server MetaMCP manages all your other MCPs in one MCP.",
   "scripts": {
     "build": "tsc && shx chmod +x dist/*.js",
