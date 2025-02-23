@@ -4,6 +4,8 @@
 
 MetaMCP MCP Server is a proxy server that joins multiple MCP⁠ servers into one. It fetches tool/prompt/resource configurations from MetaMCP App⁠ and routes tool/prompt/resource requests to the correct underlying server.
 
+MetaMCP App repo: https://github.com/metatool-ai/metatool-app
+
 ## Installation
 
 ### Installing via Smithery
