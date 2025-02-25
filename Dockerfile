@@ -45,4 +45,6 @@ RUN curl -LsSf https://astral.sh/uv/install.sh -o install.sh
 RUN sh install.sh
 
 # Run the application
+# Command line arguments can be passed to the container:
+# --metamcp-api-key <your-api-key> --metamcp-api-base-url <base-url>
 ENTRYPOINT ["node", "dist/index.js"]

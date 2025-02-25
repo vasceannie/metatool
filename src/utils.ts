@@ -45,6 +45,20 @@ export function getDefaultEnvironment(): Record<string, string> {
   return env;
 }
 
+/**
+ * Get the MetaMCP API base URL from environment variables
+ */
+export function getMetaMcpApiBaseUrl(): string {
+  return process.env.METAMCP_API_BASE_URL || "https://metamcp.com";
+}
+
+/**
+ * Get the MetaMCP API key from environment variables
+ */
+export function getMetaMcpApiKey(): string | undefined {
+  return process.env.METAMCP_API_KEY;
+}
+
 export function sanitizeName(name: string): string {
   return name.replace(/[^a-zA-Z0-9_-]/g, "");
 }

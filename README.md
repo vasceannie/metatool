@@ -42,8 +42,24 @@ npx -y @metamcp/mcp-server-metamcp
 
 ## Environment Variables
 
-- METAMCP_API_KEY: Required. Obtained from MetaMCP App’s “API Keys” page (https://metamcp.com/api-keys).
+- METAMCP_API_KEY: Required. Obtained from MetaMCP App's "API Keys" page (https://metamcp.com/api-keys).
 - METAMCP_API_BASE_URL: Optional override for MetaMCP App URL (e.g. http://localhost:12005).
+
+## Command Line Arguments
+
+You can configure the API key and base URL using command line arguments:
+
+```bash
+npx -y @metamcp/mcp-server-metamcp --metamcp-api-key <your-api-key> --metamcp-api-base-url <base-url>
+```
+
+For help with all available options:
+
+```bash
+npx -y @metamcp/mcp-server-metamcp --help
+```
+
+These command line arguments take precedence over environment variables.
 
 ## Architecture Overview
 

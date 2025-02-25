@@ -1,10 +1,12 @@
 import axios from "axios";
 import { StdioServerParameters } from "@modelcontextprotocol/sdk/client/stdio.js";
-import { getDefaultEnvironment } from "./utils.js";
+import {
+  getDefaultEnvironment,
+  getMetaMcpApiBaseUrl,
+  getMetaMcpApiKey,
+} from "./utils.js";
 
 let _mcpServersCache: Record<string, StdioServerParameters> | null = null;
-const METAMCP_API_BASE_URL =
-  process.env.METAMCP_API_BASE_URL || "https://metamcp.com";
 
 export async function getMcpServers(
   forceRefresh: boolean = false
@@ -14,11 +16,20 @@ export async function getMcpServers(
   }
 
   try {
-    const headers = { Authorization: `Bearer ${process.env.METAMCP_API_KEY}` };
-    const response = await axios.get(
-      `${METAMCP_API_BASE_URL}/api/mcp-servers`,
-      { headers }
-    );
+    const apiKey = getMetaMcpApiKey();
+    const apiBaseUrl = getMetaMcpApiBaseUrl();
+
+    if (!apiKey) {
+      console.error(
+        "METAMCP_API_KEY is not set. Please set it via environment variable or command line argument."
+      );
+      return _mcpServersCache || {};
+    }
+
+    const headers = { Authorization: `Bearer ${apiKey}` };
+    const response = await axios.get(`${apiBaseUrl}/api/mcp-servers`, {
+      headers,
+    });
     const data = response.data;
 
     const serverDict: Record<string, StdioServerParameters> = {};
