@@ -7,11 +7,19 @@ import {
 } from "./utils.js";
 
 let _mcpServersCache: Record<string, StdioServerParameters> | null = null;
+let _mcpServersCacheTimestamp: number = 0;
+const CACHE_TTL_MS = 1000; // 1 second cache TTL
 
 export async function getMcpServers(
   forceRefresh: boolean = false
 ): Promise<Record<string, StdioServerParameters>> {
-  if (!forceRefresh && _mcpServersCache !== null) {
+  const currentTime = Date.now();
+  const cacheAge = currentTime - _mcpServersCacheTimestamp;
+
+  // Use cache if it exists, is not null, and either:
+  // 1. forceRefresh is false, or
+  // 2. forceRefresh is true but cache is less than 1 second old
+  if (_mcpServersCache !== null && (!forceRefresh || cacheAge < CACHE_TTL_MS)) {
     return _mcpServersCache;
   }
 
@@ -57,6 +65,7 @@ export async function getMcpServers(
     }
 
     _mcpServersCache = serverDict;
+    _mcpServersCacheTimestamp = currentTime;
     return serverDict;
   } catch (error) {
     if (_mcpServersCache !== null) {
