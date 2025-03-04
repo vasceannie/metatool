@@ -49,7 +49,7 @@ export function getDefaultEnvironment(): Record<string, string> {
  * Get the MetaMCP API base URL from environment variables
  */
 export function getMetaMcpApiBaseUrl(): string {
-  return process.env.METAMCP_API_BASE_URL || "https://metamcp.com";
+  return process.env.METAMCP_API_BASE_URL || "https://api.metamcp.com";
 }
 
 /**
