@@ -16,7 +16,7 @@ The installation from Smithery doesn't work on cloud yet. Please install manuall
 
 ```bash
 export METAMCP_API_KEY=<env>
-npx -y @metamcp/mcp-server-metamcp
+npx -y @metamcp/mcp-server-metamcp@latest
 ```
 
 ```json
@@ -24,7 +24,7 @@ npx -y @metamcp/mcp-server-metamcp
   "mcpServers": {
     "MetaMCP": {
       "command": "npx",
-      "args": ["-y", "@metamcp/mcp-server-metamcp"],
+      "args": ["-y", "@metamcp/mcp-server-metamcp@latest"],
       "env": {
         "METAMCP_API_KEY": "<your api key>"
       }
@@ -50,13 +50,13 @@ npx -y @metamcp/mcp-server-metamcp
 You can configure the API key and base URL using command line arguments:
 
 ```bash
-npx -y @metamcp/mcp-server-metamcp --metamcp-api-key <your-api-key> --metamcp-api-base-url <base-url>
+npx -y @metamcp/mcp-server-metamcp@latest --metamcp-api-key <your-api-key> --metamcp-api-base-url <base-url>
 ```
 
 For help with all available options:
 
 ```bash
-npx -y @metamcp/mcp-server-metamcp --help
+npx -y @metamcp/mcp-server-metamcp@latest --help
 ```
 
 These command line arguments take precedence over environment variables.
