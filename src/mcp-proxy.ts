@@ -34,12 +34,12 @@ export const createServer = async () => {
   const server = new Server(
     {
       name: "MetaMCP",
-      version: "0.2.0",
+      version: "0.2.1",
     },
     {
       capabilities: {
         prompts: {},
-        resources: { subscribe: true },
+        resources: {},
         tools: {},
       },
     }
@@ -335,10 +335,7 @@ export const createServer = async () => {
               allTemplates.push(...templatesWithSource);
             }
           } catch (error) {
-            console.error(
-              `Error fetching resource templates from: ${serverName}`,
-              error
-            );
+            return;
           }
         })
       );
