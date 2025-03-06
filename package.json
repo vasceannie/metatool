@@ -5,7 +5,7 @@
   "scripts": {
     "build": "tsc && shx chmod +x dist/*.js",
     "watch": "tsc --watch",
-    "inspector": "npx @modelcontextprotocol/inspector dist/index.js"
+    "inspector": "dotenv -e .env.local npx @modelcontextprotocol/inspector dist/index.js -e METAMCP_API_KEY=${METAMCP_API_KEY} -e METAMCP_API_BASE_URL=${METAMCP_API_BASE_URL}"
   },
   "repository": {
     "type": "git",
@@ -25,6 +25,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.13.4",
+    "dotenv-cli": "^8.0.0",
     "shx": "^0.3.4",
     "typescript": "^5.7.3"
   },
