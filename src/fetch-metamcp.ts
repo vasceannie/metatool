@@ -10,7 +10,7 @@ export interface ServerParameters {
   uuid: string;
   name: string;
   description: string;
-  type: "STDIO" | "SSE";
+  type?: "STDIO" | "SSE"; // Optional field, defaults to "STDIO" when undefined
   command?: string | null;
   args?: string[] | null;
   env?: Record<string, string> | null;
@@ -55,7 +55,12 @@ export async function getMcpServers(
     const data = response.data;
 
     const serverDict: Record<string, ServerParameters> = {};
-    for (const params of data) {
+    for (const serverParams of data) {
+      const params: ServerParameters = {
+        ...serverParams,
+        type: serverParams.type || "STDIO",
+      };
+
       // Process based on server type
       if (params.type === "STDIO") {
         if ("args" in params && !params.args) {

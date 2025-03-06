@@ -20,7 +20,8 @@ export const createMetaMcpClient = (
   let transport: Transport | undefined;
 
   // Create the appropriate transport based on server type
-  if (serverParams.type === "STDIO") {
+  // Default to "STDIO" if type is undefined
+  if (!serverParams.type || serverParams.type === "STDIO") {
     const stdioParams: StdioServerParameters = {
       command: serverParams.command || "",
       args: serverParams.args || undefined,

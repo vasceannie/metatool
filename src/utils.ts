@@ -69,10 +69,11 @@ export function computeParamsHash(
 ): string {
   let paramsDict: any;
 
-  if (params.type === "STDIO") {
+  // Default to "STDIO" if type is undefined
+  if (!params.type || params.type === "STDIO") {
     paramsDict = {
       uuid,
-      type: params.type,
+      type: "STDIO", // Explicitly set type to "STDIO" for consistent hashing
       command: params.command,
       args: params.args,
       env: params.env
