@@ -1,4 +1,5 @@
 import { StdioServerParameters } from "@modelcontextprotocol/sdk/client/stdio.js";
+import { ServerParameters } from "./fetch-metamcp.js";
 import {
   ConnectedClient,
   createMetaMcpClient,
@@ -10,7 +11,7 @@ const _sessions: Record<string, ConnectedClient> = {};
 export const getSession = async (
   sessionKey: string,
   uuid: string,
-  params: StdioServerParameters
+  params: ServerParameters
 ): Promise<ConnectedClient | undefined> => {
   if (sessionKey in _sessions) {
     return _sessions[sessionKey];

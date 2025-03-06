@@ -3,7 +3,9 @@ import {
   StdioClientTransport,
   StdioServerParameters,
 } from "@modelcontextprotocol/sdk/client/stdio.js";
+import { SSEClientTransport } from "@modelcontextprotocol/sdk/client/sse.js";
 import { Transport } from "@modelcontextprotocol/sdk/shared/transport.js";
+import { ServerParameters } from "./fetch-metamcp.js";
 
 const sleep = (time: number) =>
   new Promise<void>((resolve) => setTimeout(() => resolve(), time));
@@ -13,9 +15,27 @@ export interface ConnectedClient {
 }
 
 export const createMetaMcpClient = (
-  serverParams: StdioServerParameters
+  serverParams: ServerParameters
 ): { client: Client | undefined; transport: Transport | undefined } => {
-  const transport = new StdioClientTransport(serverParams);
+  let transport: Transport | undefined;
+
+  // Create the appropriate transport based on server type
+  if (serverParams.type === "STDIO") {
+    const stdioParams: StdioServerParameters = {
+      command: serverParams.command || "",
+      args: serverParams.args || undefined,
+      env: serverParams.env || undefined,
+      // Use default values for other optional properties
+      // stderr and cwd will use their default values
+    };
+    transport = new StdioClientTransport(stdioParams);
+  } else if (serverParams.type === "SSE" && serverParams.url) {
+    transport = new SSEClientTransport(new URL(serverParams.url));
+  } else {
+    console.error(`Unsupported server type: ${serverParams.type}`);
+    return { client: undefined, transport: undefined };
+  }
+
   const client = new Client(
     {
       name: "MetaMCP",
