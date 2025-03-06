@@ -1,4 +1,3 @@
-import { StdioServerParameters } from "@modelcontextprotocol/sdk/client/stdio.js";
 import { ServerParameters } from "./fetch-metamcp.js";
 import crypto from "crypto";
 
@@ -96,9 +95,6 @@ export function computeParamsHash(
   return crypto.createHash("sha256").update(paramsJson).digest("hex");
 }
 
-export function getSessionKey(
-  uuid: string,
-  params: ServerParameters
-): string {
+export function getSessionKey(uuid: string, params: ServerParameters): string {
   return `${uuid}_${computeParamsHash(params, uuid)}`;
 }

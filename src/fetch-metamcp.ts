@@ -1,6 +1,4 @@
 import axios from "axios";
-import { StdioServerParameters } from "@modelcontextprotocol/sdk/client/stdio.js";
-import { SSEClientTransport } from '@modelcontextprotocol/sdk/client/sse.js';
 import {
   getDefaultEnvironment,
   getMetaMcpApiBaseUrl,
@@ -71,7 +69,9 @@ export async function getMcpServers(
       } else if (params.type === "SSE") {
         // For SSE servers, ensure url is present
         if (!params.url) {
-          console.warn(`SSE server ${params.uuid} is missing url field, skipping`);
+          console.warn(
+            `SSE server ${params.uuid} is missing url field, skipping`
+          );
           continue;
         }
       }

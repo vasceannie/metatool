@@ -1,4 +1,3 @@
-import { StdioServerParameters } from "@modelcontextprotocol/sdk/client/stdio.js";
 import { ServerParameters } from "./fetch-metamcp.js";
 import {
   ConnectedClient,
