@@ -1,18 +1,32 @@
 import axios from "axios";
-import { StdioServerParameters } from "@modelcontextprotocol/sdk/client/stdio.js";
 import {
   getDefaultEnvironment,
   getMetaMcpApiBaseUrl,
   getMetaMcpApiKey,
 } from "./utils.js";
 
-let _mcpServersCache: Record<string, StdioServerParameters> | null = null;
+// Define a new interface for server parameters that can be either STDIO or SSE
+export interface ServerParameters {
+  uuid: string;
+  name: string;
+  description: string;
+  type?: "STDIO" | "SSE"; // Optional field, defaults to "STDIO" when undefined
+  command?: string | null;
+  args?: string[] | null;
+  env?: Record<string, string> | null;
+  url?: string | null;
+  created_at: string;
+  profile_uuid: string;
+  status: string;
+}
+
+let _mcpServersCache: Record<string, ServerParameters> | null = null;
 let _mcpServersCacheTimestamp: number = 0;
 const CACHE_TTL_MS = 1000; // 1 second cache TTL
 
 export async function getMcpServers(
   forceRefresh: boolean = false
-): Promise<Record<string, StdioServerParameters>> {
+): Promise<Record<string, ServerParameters>> {
   const currentTime = Date.now();
   const cacheAge = currentTime - _mcpServersCacheTimestamp;
 
@@ -40,27 +54,36 @@ export async function getMcpServers(
     });
     const data = response.data;
 
-    const serverDict: Record<string, StdioServerParameters> = {};
-    for (const params of data) {
-      if ("args" in params && !params.args) {
-        params.args = undefined;
-      }
-
-      params.env = {
-        ...getDefaultEnvironment(),
-        ...(params.env || {}),
+    const serverDict: Record<string, ServerParameters> = {};
+    for (const serverParams of data) {
+      const params: ServerParameters = {
+        ...serverParams,
+        type: serverParams.type || "STDIO",
       };
 
-      const serverParams: StdioServerParameters = {
-        ...params,
-        env: {
+      // Process based on server type
+      if (params.type === "STDIO") {
+        if ("args" in params && !params.args) {
+          params.args = undefined;
+        }
+
+        params.env = {
           ...getDefaultEnvironment(),
           ...(params.env || {}),
-        },
-      };
+        };
+      } else if (params.type === "SSE") {
+        // For SSE servers, ensure url is present
+        if (!params.url) {
+          console.warn(
+            `SSE server ${params.uuid} is missing url field, skipping`
+          );
+          continue;
+        }
+      }
+
       const uuid = params.uuid;
       if (uuid) {
-        serverDict[uuid] = serverParams;
+        serverDict[uuid] = params;
       }
     }
 

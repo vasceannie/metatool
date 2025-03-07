@@ -1,4 +1,4 @@
-import { StdioServerParameters } from "@modelcontextprotocol/sdk/client/stdio.js";
+import { ServerParameters } from "./fetch-metamcp.js";
 import crypto from "crypto";
 
 /**
@@ -64,27 +64,38 @@ export function sanitizeName(name: string): string {
 }
 
 export function computeParamsHash(
-  params: StdioServerParameters,
+  params: ServerParameters,
   uuid: string
 ): string {
-  const paramsDict = {
-    uuid,
-    command: params.command,
-    args: params.args,
-    env: params.env
-      ? Object.fromEntries(
-          Object.entries(params.env).sort((a, b) => a[0].localeCompare(b[0]))
-        )
-      : null,
-  };
+  let paramsDict: any;
+
+  // Default to "STDIO" if type is undefined
+  if (!params.type || params.type === "STDIO") {
+    paramsDict = {
+      uuid,
+      type: "STDIO", // Explicitly set type to "STDIO" for consistent hashing
+      command: params.command,
+      args: params.args,
+      env: params.env
+        ? Object.fromEntries(
+            Object.entries(params.env).sort((a, b) => a[0].localeCompare(b[0]))
+          )
+        : null,
+    };
+  } else if (params.type === "SSE") {
+    paramsDict = {
+      uuid,
+      type: params.type,
+      url: params.url,
+    };
+  } else {
+    throw new Error(`Unsupported server type: ${params.type}`);
+  }
 
   const paramsJson = JSON.stringify(paramsDict);
   return crypto.createHash("sha256").update(paramsJson).digest("hex");
 }
 
-export function getSessionKey(
-  uuid: string,
-  params: StdioServerParameters
-): string {
+export function getSessionKey(uuid: string, params: ServerParameters): string {
   return `${uuid}_${computeParamsHash(params, uuid)}`;
 }
