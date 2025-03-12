@@ -16,6 +16,8 @@ MetaMCP App repo: https://github.com/metatool-ai/metatool-app
 
 ### Installing via Smithery
 
+Sometimes Smithery works (confirmed in Windsurf locally) but sometimes it is unstable because MetaMCP is special that it runs other MCPs on top of it. Please consider using manual installation if it doesn't work instead.
+
 To install MetaMCP MCP Server for Claude Desktop automatically via [Smithery](https://smithery.ai/server/@metatool-ai/mcp-server-metamcp):
 
 ```bash
