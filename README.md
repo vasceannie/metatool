@@ -4,6 +4,10 @@
 
 MetaMCP MCP Server is a proxy server that joins multiple MCP⁠ servers into one. It fetches tool/prompt/resource configurations from MetaMCP App⁠ and routes tool/prompt/resource requests to the correct underlying server.
 
+<a href="https://glama.ai/mcp/servers/0po36lc7i6">
+  <img width="380" height="200" src="https://glama.ai/mcp/servers/0po36lc7i6/badge" alt="MetaServer MCP server" />
+</a>
+
 MetaMCP App repo: https://github.com/metatool-ai/metatool-app
 
 ## Installation
