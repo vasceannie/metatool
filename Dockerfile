@@ -37,12 +37,20 @@ RUN npm ci --omit=dev
 # Make port 3000 available to the world outside this container
 EXPOSE 3000
 
-# Install curl
-RUN apk add --no-cache curl
+# Install curl, Python 3.12 and other necessary tools
+RUN apk add --no-cache curl bash python3 py3-pip
 
-# Install uv
-RUN curl -LsSf https://astral.sh/uv/install.sh -o install.sh
-RUN sh install.sh
+# Install uv and make uvx available
+RUN curl -LsSf https://astral.sh/uv/install.sh -o install.sh && \
+    sh install.sh && \
+    rm install.sh
+
+# Ensure uv binaries are in PATH
+ENV PATH="/root/.cargo/bin:${PATH}"
+
+# Ensure npx is available (it should be included with Node.js installation)
+# But we'll verify it's working
+RUN npx --version || npm install -g npx
 
 # Run the application
 # Command line arguments can be passed to the container:
