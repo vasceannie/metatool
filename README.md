@@ -14,7 +14,11 @@ MetaMCP App repo: https://github.com/metatool-ai/metatool-app
 
 ### Installing via Smithery
 
-The installation from Smithery doesn't work on cloud yet. Please install manually for now.
+To install MetaMCP MCP Server for Claude Desktop automatically via [Smithery](https://smithery.ai/server/@metatool-ai/mcp-server-metamcp):
+
+```bash
+npx -y @smithery/cli install @metatool-ai/mcp-server-metamcp --client claude
+```
 
 ### Manual Installation
 
