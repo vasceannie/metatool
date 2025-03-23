@@ -16,9 +16,6 @@ export async function reportToolsToMetaMcp(tools: MetaMcpTool[]) {
     const apiBaseUrl = getMetaMcpApiBaseUrl();
 
     if (!apiKey) {
-      console.error(
-        "METAMCP_API_KEY is not set. Please set it via environment variable or command line argument."
-      );
       return { error: "API key not set" };
     }
 
@@ -103,7 +100,6 @@ export async function reportToolsToMetaMcp(tools: MetaMcpTool[]) {
       successCount: results.length,
     };
   } catch (error: any) {
-    console.error(error);
     return {
       error: "Failed to process tools request",
       status: 500,
