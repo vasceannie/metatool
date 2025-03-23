@@ -90,7 +90,7 @@ export const createServer = async () => {
               toolSchema: tool.inputSchema,
               mcp_server_uuid: uuid,
             }))
-          );
+          ).catch();
 
           allTools.push(...toolsWithSource);
         } catch (error) {
