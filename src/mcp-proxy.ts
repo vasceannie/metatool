@@ -20,7 +20,7 @@ import {
 import { z } from "zod";
 import { getMcpServers } from "./fetch-metamcp.js";
 import { getSessionKey, sanitizeName } from "./utils.js";
-import { cleanupAllSessions, getSession } from "./sessions.js";
+import { cleanupAllSessions, getSession, initSessions } from "./sessions.js";
 import { ConnectedClient } from "./client.js";
 import { reportToolsToMetaMcp } from "./report-tools.js";
 
@@ -42,6 +42,9 @@ export const createServer = async () => {
       },
     }
   );
+
+  // Initialize sessions in the background when server starts
+  initSessions().catch();
 
   // List Tools Handler
   server.setRequestHandler(ListToolsRequestSchema, async (request) => {

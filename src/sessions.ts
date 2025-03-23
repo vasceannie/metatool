@@ -1,9 +1,10 @@
-import { ServerParameters } from "./fetch-metamcp.js";
+import { getMcpServers, ServerParameters } from "./fetch-metamcp.js";
 import {
   ConnectedClient,
   createMetaMcpClient,
   connectMetaMcpClient,
 } from "./client.js";
+import { getSessionKey } from "./utils.js";
 
 const _sessions: Record<string, ConnectedClient> = {};
 
@@ -41,6 +42,19 @@ export const getSession = async (
 
     return newClient;
   }
+};
+
+export const initSessions = async (): Promise<void> => {
+  const serverParams = await getMcpServers(true);
+
+  await Promise.allSettled(
+    Object.entries(serverParams).map(async ([uuid, params]) => {
+      const sessionKey = getSessionKey(uuid, params);
+      try {
+        await getSession(sessionKey, uuid, params);
+      } catch (error) {}
+    })
+  );
 };
 
 export const cleanupAllSessions = async (): Promise<void> => {
