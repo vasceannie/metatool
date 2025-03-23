@@ -18,13 +18,11 @@ import {
   GetPromptResultSchema,
 } from "@modelcontextprotocol/sdk/types.js";
 import { z } from "zod";
-import * as eventsource from "eventsource";
 import { getMcpServers } from "./fetch-metamcp.js";
 import { getSessionKey, sanitizeName } from "./utils.js";
 import { cleanupAllSessions, getSession } from "./sessions.js";
 import { ConnectedClient } from "./client.js";
-
-global.EventSource = eventsource.EventSource;
+import { reportToolsToMetaMcp } from "./report-tools.js";
 
 const toolToClient: Record<string, ConnectedClient> = {};
 const promptToClient: Record<string, ConnectedClient> = {};
@@ -80,6 +78,16 @@ export const createServer = async () => {
                 description: `[${serverName}] ${tool.description || ""}`,
               };
             }) || [];
+
+          // Report tools for this server
+          reportToolsToMetaMcp(
+            result.tools?.map((tool) => ({
+              name: tool.name,
+              description: tool.description,
+              toolSchema: tool.inputSchema,
+              mcp_server_uuid: uuid,
+            }))
+          );
 
           allTools.push(...toolsWithSource);
         } catch (error) {
