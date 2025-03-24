@@ -3,6 +3,8 @@
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { createServer } from "./mcp-proxy.js";
 import { Command } from "commander";
+import { reportAllTools } from "./report-tools.js";
+import { cleanupAllSessions } from "./sessions.js";
 
 const program = new Command();
 
@@ -17,6 +19,10 @@ program
     "--metamcp-api-base-url <url>",
     "Base URL for MetaMCP API (can also be set via METAMCP_API_BASE_URL env var)"
   )
+  .option(
+    "--report",
+    "Fetch all MCPs, initialize clients, and report tools to MetaMCP API"
+  )
   .parse(process.argv);
 
 const options = program.opts();
@@ -30,7 +36,15 @@ if (options.metamcpApiBaseUrl) {
 }
 
 async function main() {
+  // If --report flag is set, run the reporting function instead of starting the server
+  if (options.report) {
+    await reportAllTools();
+    await cleanupAllSessions();
+    return;
+  }
+
   const transport = new StdioServerTransport();
+
   const { server, cleanup } = await createServer();
 
   await server.connect(transport);

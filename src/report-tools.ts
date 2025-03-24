@@ -1,5 +1,9 @@
 import axios from "axios";
 import { getMetaMcpApiBaseUrl, getMetaMcpApiKey } from "./utils.js";
+import { getMcpServers } from "./fetch-metamcp.js";
+import { initSessions, getSession } from "./sessions.js";
+import { getSessionKey } from "./utils.js";
+import { ListToolsResultSchema } from "@modelcontextprotocol/sdk/types.js";
 
 // Define interface for tool data structure
 export interface MetaMcpTool {
@@ -105,4 +109,71 @@ export async function reportToolsToMetaMcp(tools: MetaMcpTool[]) {
       status: 500,
     };
   }
+}
+
+// Function to fetch all MCP servers, initialize clients, and report tools to MetaMCP API
+export async function reportAllTools() {
+  console.log("Fetching all MCPs and initializing clients...");
+
+  // Get all MCP servers
+  const serverParams = await getMcpServers();
+
+  // Initialize all sessions
+  await initSessions();
+
+  console.log(`Found ${Object.keys(serverParams).length} MCP servers`);
+
+  // For each server, get its tools and report them
+  await Promise.allSettled(
+    Object.entries(serverParams).map(async ([uuid, params]) => {
+      const sessionKey = getSessionKey(uuid, params);
+      const session = await getSession(sessionKey, uuid, params);
+
+      if (!session) {
+        console.log(`Could not establish session for ${params.name} (${uuid})`);
+        return;
+      }
+
+      const capabilities = session.client.getServerCapabilities();
+      if (!capabilities?.tools) {
+        console.log(`Server ${params.name} (${uuid}) does not support tools`);
+        return;
+      }
+
+      try {
+        console.log(`Fetching tools from ${params.name} (${uuid})...`);
+
+        const result = await session.client.request(
+          { method: "tools/list", params: {} },
+          ListToolsResultSchema
+        );
+
+        if (result.tools && result.tools.length > 0) {
+          console.log(
+            `Reporting ${result.tools.length} tools from ${params.name} to MetaMCP API...`
+          );
+
+          const reportResult = await reportToolsToMetaMcp(
+            result.tools.map((tool) => ({
+              name: tool.name,
+              description: tool.description,
+              toolSchema: tool.inputSchema,
+              mcp_server_uuid: uuid,
+            }))
+          );
+
+          console.log(
+            `Reported tools from ${params.name}: ${reportResult.successCount} succeeded, ${reportResult.failureCount} failed`
+          );
+        } else {
+          console.log(`No tools found for ${params.name}`);
+        }
+      } catch (error) {
+        console.error(`Error reporting tools for ${params.name}:`, error);
+      }
+    })
+  );
+
+  console.log("Finished reporting all tools to MetaMCP API");
+  process.exit(0);
 }
