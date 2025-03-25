@@ -28,6 +28,7 @@ import { getInactiveTools } from "./fetch-tools.js";
 const toolToClient: Record<string, ConnectedClient> = {};
 const promptToClient: Record<string, ConnectedClient> = {};
 const resourceToClient: Record<string, ConnectedClient> = {};
+const inactiveToolsMap: Record<string, boolean> = {};
 
 export const createServer = async () => {
   const server = new Server(
@@ -52,6 +53,11 @@ export const createServer = async () => {
     const serverParams = await getMcpServers(true);
     // Fetch inactive tools
     const inactiveTools = await getInactiveTools(true);
+
+    // Clear existing inactive tools map before rebuilding
+    Object.keys(inactiveToolsMap).forEach(
+      (key) => delete inactiveToolsMap[key]
+    );
 
     const allTools: Tool[] = [];
 
@@ -87,6 +93,15 @@ export const createServer = async () => {
                 };
               }) || [];
 
+          // Update our inactive tools map
+          result.tools?.forEach((tool) => {
+            const isInactive = inactiveTools[`${uuid}:${tool.name}`];
+            if (isInactive) {
+              const formattedName = `${sanitizeName(serverName)}__${tool.name}`;
+              inactiveToolsMap[formattedName] = true;
+            }
+          });
+
           // Report full tools for this server
           reportToolsToMetaMcp(
             result.tools.map((tool) => ({
@@ -115,6 +130,11 @@ export const createServer = async () => {
 
     if (!clientForTool) {
       throw new Error(`Unknown tool: ${name}`);
+    }
+
+    // Check if the tool is in our inactive map
+    if (inactiveToolsMap[name]) {
+      throw new Error(`Tool is inactive: ${name}`);
     }
 
     try {
