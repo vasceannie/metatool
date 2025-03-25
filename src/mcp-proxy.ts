@@ -23,6 +23,7 @@ import { getSessionKey, sanitizeName } from "./utils.js";
 import { cleanupAllSessions, getSession, initSessions } from "./sessions.js";
 import { ConnectedClient } from "./client.js";
 import { reportToolsToMetaMcp } from "./report-tools.js";
+import { getInactiveTools } from "./fetch-tools.js";
 
 const toolToClient: Record<string, ConnectedClient> = {};
 const promptToClient: Record<string, ConnectedClient> = {};
@@ -49,6 +50,8 @@ export const createServer = async () => {
   // List Tools Handler
   server.setRequestHandler(ListToolsRequestSchema, async (request) => {
     const serverParams = await getMcpServers(true);
+    // Fetch inactive tools
+    const inactiveTools = await getInactiveTools(true);
 
     const allTools: Tool[] = [];
 
@@ -72,19 +75,21 @@ export const createServer = async () => {
           );
 
           const toolsWithSource =
-            result.tools?.map((tool) => {
-              const toolName = `${sanitizeName(serverName)}__${tool.name}`;
-              toolToClient[toolName] = session;
-              return {
-                ...tool,
-                name: toolName,
-                description: `[${serverName}] ${tool.description || ""}`,
-              };
-            }) || [];
+            result.tools
+              ?.filter((tool) => !inactiveTools[`${uuid}:${tool.name}`])
+              .map((tool) => {
+                const toolName = `${sanitizeName(serverName)}__${tool.name}`;
+                toolToClient[toolName] = session;
+                return {
+                  ...tool,
+                  name: toolName,
+                  description: `[${serverName}] ${tool.description || ""}`,
+                };
+              }) || [];
 
-          // Report tools for this server
+          // Report full tools for this server
           reportToolsToMetaMcp(
-            result.tools?.map((tool) => ({
+            result.tools.map((tool) => ({
               name: tool.name,
               description: tool.description,
               toolSchema: tool.inputSchema,
