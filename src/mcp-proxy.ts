@@ -18,23 +18,27 @@ import {
   GetPromptResultSchema,
 } from "@modelcontextprotocol/sdk/types.js";
 import { z } from "zod";
-import * as eventsource from "eventsource";
 import { getMcpServers } from "./fetch-metamcp.js";
 import { getSessionKey, sanitizeName } from "./utils.js";
-import { cleanupAllSessions, getSession } from "./sessions.js";
+import { cleanupAllSessions, getSession, initSessions } from "./sessions.js";
 import { ConnectedClient } from "./client.js";
-
-global.EventSource = eventsource.EventSource;
+import { reportToolsToMetaMcp } from "./report-tools.js";
+import { getInactiveTools, ToolParameters } from "./fetch-tools.js";
+import {
+  getProfileCapabilities,
+  ProfileCapability,
+} from "./fetch-capabilities.js";
 
 const toolToClient: Record<string, ConnectedClient> = {};
 const promptToClient: Record<string, ConnectedClient> = {};
 const resourceToClient: Record<string, ConnectedClient> = {};
+const inactiveToolsMap: Record<string, boolean> = {};
 
 export const createServer = async () => {
   const server = new Server(
     {
       name: "MetaMCP",
-      version: "0.3.0",
+      version: "0.4.0",
     },
     {
       capabilities: {
@@ -45,9 +49,23 @@ export const createServer = async () => {
     }
   );
 
+  // Initialize sessions in the background when server starts
+  initSessions().catch();
+
   // List Tools Handler
   server.setRequestHandler(ListToolsRequestSchema, async (request) => {
+    const profileCapabilities = await getProfileCapabilities(true);
     const serverParams = await getMcpServers(true);
+
+    // Fetch inactive tools only if tools management capability is present
+    let inactiveTools: Record<string, ToolParameters> = {};
+    if (profileCapabilities.includes(ProfileCapability.TOOLS_MANAGEMENT)) {
+      inactiveTools = await getInactiveTools(true);
+      // Clear existing inactive tools map before rebuilding
+      Object.keys(inactiveToolsMap).forEach(
+        (key) => delete inactiveToolsMap[key]
+      );
+    }
 
     const allTools: Tool[] = [];
 
@@ -71,15 +89,52 @@ export const createServer = async () => {
           );
 
           const toolsWithSource =
-            result.tools?.map((tool) => {
-              const toolName = `${sanitizeName(serverName)}__${tool.name}`;
-              toolToClient[toolName] = session;
-              return {
-                ...tool,
-                name: toolName,
-                description: `[${serverName}] ${tool.description || ""}`,
-              };
-            }) || [];
+            result.tools
+              ?.filter((tool) => {
+                // Only filter inactive tools if tools management is enabled
+                if (
+                  profileCapabilities.includes(
+                    ProfileCapability.TOOLS_MANAGEMENT
+                  )
+                ) {
+                  return !inactiveTools[`${uuid}:${tool.name}`];
+                }
+                return true;
+              })
+              .map((tool) => {
+                const toolName = `${sanitizeName(serverName)}__${tool.name}`;
+                toolToClient[toolName] = session;
+                return {
+                  ...tool,
+                  name: toolName,
+                  description: `[${serverName}] ${tool.description || ""}`,
+                };
+              }) || [];
+
+          // Update our inactive tools map only if tools management is enabled
+          if (
+            profileCapabilities.includes(ProfileCapability.TOOLS_MANAGEMENT)
+          ) {
+            result.tools?.forEach((tool) => {
+              const isInactive = inactiveTools[`${uuid}:${tool.name}`];
+              if (isInactive) {
+                const formattedName = `${sanitizeName(serverName)}__${
+                  tool.name
+                }`;
+                inactiveToolsMap[formattedName] = true;
+              }
+            });
+
+            // Report full tools for this server
+            reportToolsToMetaMcp(
+              result.tools.map((tool) => ({
+                name: tool.name,
+                description: tool.description,
+                toolSchema: tool.inputSchema,
+                mcp_server_uuid: uuid,
+              }))
+            ).catch();
+          }
 
           allTools.push(...toolsWithSource);
         } catch (error) {
@@ -99,6 +154,15 @@ export const createServer = async () => {
 
     if (!clientForTool) {
       throw new Error(`Unknown tool: ${name}`);
+    }
+
+    // Only check inactive tools if tools management capability is present
+    const profileCapabilities = await getProfileCapabilities();
+    if (
+      profileCapabilities.includes(ProfileCapability.TOOLS_MANAGEMENT) &&
+      inactiveToolsMap[name]
+    ) {
+      throw new Error(`Tool is inactive: ${name}`);
     }
 
     try {
