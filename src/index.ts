@@ -1,12 +1,11 @@
 #!/usr/bin/env node
 
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
 import { createServer } from "./mcp-proxy.js";
 import { Command } from "commander";
 import { reportAllTools } from "./report-tools.js";
 import { cleanupAllSessions } from "./sessions.js";
-import express from "express";
+import { startSSEServer } from "./sse.js";
 
 const program = new Command();
 
@@ -51,46 +50,13 @@ async function main() {
 
   if (options.transport.toLowerCase() === "sse") {
     // Start SSE server
-    const app = express();
     const port = parseInt(options.port) || 12006;
-
-    // to support multiple simultaneous connections we have a lookup object from
-    // sessionId to transport
-    const transports: { [sessionId: string]: SSEServerTransport } = {};
-
-    app.get("/sse", async (_: express.Request, res: express.Response) => {
-      const transport = new SSEServerTransport("/messages", res);
-      transports[transport.sessionId] = transport;
-      res.on("close", () => {
-        delete transports[transport.sessionId];
-      });
-      await server.connect(transport);
-    });
-
-    app.post(
-      "/messages",
-      async (req: express.Request, res: express.Response) => {
-        const sessionId = req.query.sessionId as string;
-        const transport = transports[sessionId];
-        if (transport) {
-          await transport.handlePostMessage(req, res);
-        } else {
-          res.status(400).send("No transport found for sessionId");
-        }
-      }
-    );
-
-    app.listen(port, () => {
-      console.log(`SSE server listening on port ${port}`);
-    });
+    const sseCleanup = await startSSEServer(server, { port });
 
     // Cleanup on exit
     const handleExit = async () => {
       await cleanup();
-      // Close all active transports
-      await Promise.all(
-        Object.values(transports).map((transport) => transport.close())
-      );
+      await sseCleanup();
       await server.close();
       process.exit(0);
     };
