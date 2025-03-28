@@ -26,6 +26,7 @@ program
   )
   .option("--transport <type>", "Transport type to use (stdio or sse)", "stdio")
   .option("--port <port>", "Port to use for SSE transport", "3001")
+  .option("--require-api-auth", "Require API key in SSE URL path")
   .parse(process.argv);
 
 const options = program.opts();
@@ -51,7 +52,10 @@ async function main() {
   if (options.transport.toLowerCase() === "sse") {
     // Start SSE server
     const port = parseInt(options.port) || 12006;
-    const sseCleanup = await startSSEServer(server, { port });
+    const sseCleanup = await startSSEServer(server, {
+      port,
+      requireApiAuth: options.requireApiAuth,
+    });
 
     // Cleanup on exit
     const handleExit = async () => {
