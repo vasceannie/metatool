@@ -1,10 +1,12 @@
 #!/usr/bin/env node
 
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
 import { createServer } from "./mcp-proxy.js";
 import { Command } from "commander";
 import { reportAllTools } from "./report-tools.js";
 import { cleanupAllSessions } from "./sessions.js";
+import express from "express";
 
 const program = new Command();
 
@@ -23,6 +25,8 @@ program
     "--report",
     "Fetch all MCPs, initialize clients, and report tools to MetaMCP API"
   )
+  .option("--transport <type>", "Transport type to use (stdio or sse)", "stdio")
+  .option("--port <port>", "Port to use for SSE transport", "3001")
   .parse(process.argv);
 
 const options = program.opts();
@@ -43,26 +47,76 @@ async function main() {
     return;
   }
 
-  const transport = new StdioServerTransport();
-
   const { server, cleanup } = await createServer();
 
-  await server.connect(transport);
+  if (options.transport.toLowerCase() === "sse") {
+    // Start SSE server
+    const app = express();
+    const port = parseInt(options.port) || 12006;
 
-  const handleExit = async () => {
-    await cleanup();
-    await transport.close();
-    await server.close();
-    process.exit(0);
-  };
+    // to support multiple simultaneous connections we have a lookup object from
+    // sessionId to transport
+    const transports: { [sessionId: string]: SSEServerTransport } = {};
 
-  // Cleanup on exit
-  process.on("SIGINT", handleExit);
-  process.on("SIGTERM", handleExit);
+    app.get("/sse", async (_: express.Request, res: express.Response) => {
+      const transport = new SSEServerTransport("/messages", res);
+      transports[transport.sessionId] = transport;
+      res.on("close", () => {
+        delete transports[transport.sessionId];
+      });
+      await server.connect(transport);
+    });
 
-  process.stdin.resume();
-  process.stdin.on("end", handleExit);
-  process.stdin.on("close", handleExit);
+    app.post(
+      "/messages",
+      async (req: express.Request, res: express.Response) => {
+        const sessionId = req.query.sessionId as string;
+        const transport = transports[sessionId];
+        if (transport) {
+          await transport.handlePostMessage(req, res);
+        } else {
+          res.status(400).send("No transport found for sessionId");
+        }
+      }
+    );
+
+    app.listen(port, () => {
+      console.log(`SSE server listening on port ${port}`);
+    });
+
+    // Cleanup on exit
+    const handleExit = async () => {
+      await cleanup();
+      // Close all active transports
+      await Promise.all(
+        Object.values(transports).map((transport) => transport.close())
+      );
+      await server.close();
+      process.exit(0);
+    };
+
+    process.on("SIGINT", handleExit);
+    process.on("SIGTERM", handleExit);
+  } else {
+    // Default: Start stdio server
+    const transport = new StdioServerTransport();
+    await server.connect(transport);
+
+    const handleExit = async () => {
+      await cleanup();
+      await transport.close();
+      await server.close();
+      process.exit(0);
+    };
+
+    // Cleanup on exit
+    process.on("SIGINT", handleExit);
+    process.on("SIGTERM", handleExit);
+
+    process.stdin.resume();
+    process.stdin.on("end", handleExit);
+    process.stdin.on("close", handleExit);
+  }
 }
 
 main().catch((error) => {
