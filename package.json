@@ -1,6 +1,6 @@
 {
   "name": "@metamcp/mcp-server-metamcp",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "MCP Server MetaMCP manages all your other MCPs in one MCP.",
   "scripts": {
     "build": "tsc && shx chmod +x dist/*.js",
@@ -23,13 +23,15 @@
     "@modelcontextprotocol/sdk": "^1.8.0",
     "axios": "^1.7.9",
     "commander": "^13.1.0",
+    "express": "^4.21.2",
     "zod": "^3.24.2"
   },
   "devDependencies": {
+    "@types/express": "^5.0.1",
     "@types/node": "^22.13.4",
     "dotenv-cli": "^8.0.0",
     "shx": "^0.3.4",
-    "typescript": "^5.7.3"
+    "typescript": "^5.8.2"
   },
   "type": "module",
   "bin": {

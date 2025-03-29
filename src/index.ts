@@ -5,6 +5,7 @@ import { createServer } from "./mcp-proxy.js";
 import { Command } from "commander";
 import { reportAllTools } from "./report-tools.js";
 import { cleanupAllSessions } from "./sessions.js";
+import { startSSEServer } from "./sse.js";
 
 const program = new Command();
 
@@ -23,6 +24,9 @@ program
     "--report",
     "Fetch all MCPs, initialize clients, and report tools to MetaMCP API"
   )
+  .option("--transport <type>", "Transport type to use (stdio or sse)", "stdio")
+  .option("--port <port>", "Port to use for SSE transport", "3001")
+  .option("--require-api-auth", "Require API key in SSE URL path")
   .parse(process.argv);
 
 const options = program.opts();
@@ -43,26 +47,46 @@ async function main() {
     return;
   }
 
-  const transport = new StdioServerTransport();
-
   const { server, cleanup } = await createServer();
 
-  await server.connect(transport);
+  if (options.transport.toLowerCase() === "sse") {
+    // Start SSE server
+    const port = parseInt(options.port) || 12006;
+    const sseCleanup = await startSSEServer(server, {
+      port,
+      requireApiAuth: options.requireApiAuth,
+    });
 
-  const handleExit = async () => {
-    await cleanup();
-    await transport.close();
-    await server.close();
-    process.exit(0);
-  };
+    // Cleanup on exit
+    const handleExit = async () => {
+      await cleanup();
+      await sseCleanup();
+      await server.close();
+      process.exit(0);
+    };
 
-  // Cleanup on exit
-  process.on("SIGINT", handleExit);
-  process.on("SIGTERM", handleExit);
+    process.on("SIGINT", handleExit);
+    process.on("SIGTERM", handleExit);
+  } else {
+    // Default: Start stdio server
+    const transport = new StdioServerTransport();
+    await server.connect(transport);
 
-  process.stdin.resume();
-  process.stdin.on("end", handleExit);
-  process.stdin.on("close", handleExit);
+    const handleExit = async () => {
+      await cleanup();
+      await transport.close();
+      await server.close();
+      process.exit(0);
+    };
+
+    // Cleanup on exit
+    process.on("SIGINT", handleExit);
+    process.on("SIGTERM", handleExit);
+
+    process.stdin.resume();
+    process.stdin.on("end", handleExit);
+    process.stdin.on("close", handleExit);
+  }
 }
 
 main().catch((error) => {

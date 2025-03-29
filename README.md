@@ -45,33 +45,58 @@ npx -y @metamcp/mcp-server-metamcp@latest
 }
 ```
 
+## Usage
+
+### Using as a stdio server (default)
+
+```bash
+mcp-server-metamcp --metamcp-api-key <your-api-key>
+```
+
+### Using as an SSE server
+
+```bash
+mcp-server-metamcp --metamcp-api-key <your-api-key> --transport sse --port 12006
+```
+
+With the SSE transport option, the server will start an Express.js web server that listens for SSE connections on the `/sse` endpoint and accepts messages on the `/messages` endpoint.
+
+### Command Line Options
+
+```
+Options:
+  --metamcp-api-key <key>       API key for MetaMCP (can also be set via METAMCP_API_KEY env var)
+  --metamcp-api-base-url <url>  Base URL for MetaMCP API (can also be set via METAMCP_API_BASE_URL env var)
+  --report                      Fetch all MCPs, initialize clients, and report tools to MetaMCP API
+  --transport <type>            Transport type to use (stdio or sse) (default: "stdio")
+  --port <port>                 Port to use for SSE transport (default: "12006")
+  -h, --help                    display help for command
+```
+
+## Environment Variables
+
+- `METAMCP_API_KEY`: API key for MetaMCP
+- `METAMCP_API_BASE_URL`: Base URL for MetaMCP API
+
+## Development
+
+```bash
+# Install dependencies
+npm install
+
+# Build the application
+npm run build
+
+# Watch for changes
+npm run watch
+```
+
 ## Highlights
 
 - Compatible with ANY MCP Client
 - Multi-Workspaces layer enables you to switch to another set of MCP configs within one-click.
 - GUI dynamic updates of MCP configs.
 - Namespace isolation for joined MCPs.
-
-## Environment Variables
-
-- METAMCP_API_KEY: Required. Obtained from MetaMCP App's "API Keys" page (https://metamcp.com/api-keys).
-- METAMCP_API_BASE_URL: Optional override for MetaMCP App URL (e.g. http://localhost:12005).
-
-## Command Line Arguments
-
-You can configure the API key and base URL using command line arguments:
-
-```bash
-npx -y @metamcp/mcp-server-metamcp@latest --metamcp-api-key <your-api-key> --metamcp-api-base-url <base-url>
-```
-
-For help with all available options:
-
-```bash
-npx -y @metamcp/mcp-server-metamcp@latest --help
-```
-
-These command line arguments take precedence over environment variables.
 
 ## Architecture Overview
 
