@@ -28,8 +28,10 @@ import {
   getProfileCapabilities,
   ProfileCapability,
 } from "./fetch-capabilities.js";
+import { ToolLogManager } from "./tool-logs.js";
 
 const toolToClient: Record<string, ConnectedClient> = {};
+const toolToServerUuid: Record<string, string> = {};
 const promptToClient: Record<string, ConnectedClient> = {};
 const resourceToClient: Record<string, ConnectedClient> = {};
 const inactiveToolsMap: Record<string, boolean> = {};
@@ -104,6 +106,7 @@ export const createServer = async () => {
               .map((tool) => {
                 const toolName = `${sanitizeName(serverName)}__${tool.name}`;
                 toolToClient[toolName] = session;
+                toolToServerUuid[toolName] = uuid;
                 return {
                   ...tool,
                   name: toolName,
@@ -149,11 +152,21 @@ export const createServer = async () => {
   // Call Tool Handler
   server.setRequestHandler(CallToolRequestSchema, async (request) => {
     const { name, arguments: args } = request.params;
-
+    const originalToolName = name.split("__")[1];
     const clientForTool = toolToClient[name];
+    const toolLogManager = ToolLogManager.getInstance();
+    let logId: string | undefined;
+    let startTime = Date.now();
 
     if (!clientForTool) {
       throw new Error(`Unknown tool: ${name}`);
+    }
+
+    // Get MCP server UUID for the tool
+    const mcpServerUuid = toolToServerUuid[name] || "";
+
+    if (!mcpServerUuid) {
+      console.error(`Could not determine MCP server UUID for tool: ${name}`);
     }
 
     // Only check inactive tools if tools management capability is present
@@ -166,14 +179,23 @@ export const createServer = async () => {
     }
 
     try {
-      const toolName = name.split("__")[1];
+      // Create initial pending log
+      const log = await toolLogManager.createLog(
+        originalToolName,
+        mcpServerUuid,
+        args || {}
+      );
+      logId = log.id;
+
+      // Reset the timer right before making the actual tool call
+      startTime = Date.now();
 
       // Use the correct schema for tool calls
-      return await clientForTool.client.request(
+      const result = await clientForTool.client.request(
         {
           method: "tools/call",
           params: {
-            name: toolName,
+            name: originalToolName,
             arguments: args || {},
             _meta: {
               progressToken: request.params._meta?.progressToken,
@@ -182,10 +204,30 @@ export const createServer = async () => {
         },
         CompatibilityCallToolResultSchema
       );
-    } catch (error) {
+
+      const executionTime = Date.now() - startTime;
+
+      // Update log with success result
+      if (logId) {
+        await toolLogManager.completeLog(logId, result, executionTime);
+      }
+
+      return result;
+    } catch (error: any) {
+      const executionTime = Date.now() - startTime;
+
+      // Update log with error
+      if (logId) {
+        await toolLogManager.failLog(
+          logId,
+          error.message || "Unknown error",
+          executionTime
+        );
+      }
+
       console.error(
-        `Error calling tool through ${
-          clientForTool.client.getServerVersion()?.name
+        `Error calling tool "${name}" through ${
+          clientForTool.client.getServerVersion()?.name || "unknown"
         }:`,
         error
       );
