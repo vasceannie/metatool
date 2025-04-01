@@ -169,8 +169,10 @@ export const createServer = async () => {
       console.error(`Could not determine MCP server UUID for tool: ${name}`);
     }
 
-    // Only check inactive tools if tools management capability is present
+    // Get profile capabilities
     const profileCapabilities = await getProfileCapabilities();
+
+    // Only check inactive tools if tools management capability is present
     if (
       profileCapabilities.includes(ProfileCapability.TOOLS_MANAGEMENT) &&
       inactiveToolsMap[name]
@@ -178,14 +180,21 @@ export const createServer = async () => {
       throw new Error(`Tool is inactive: ${name}`);
     }
 
+    // Check if TOOLS_LOG capability is enabled
+    const hasToolsLogCapability = profileCapabilities.includes(
+      ProfileCapability.TOOLS_LOG
+    );
+
     try {
-      // Create initial pending log
-      const log = await toolLogManager.createLog(
-        originalToolName,
-        mcpServerUuid,
-        args || {}
-      );
-      logId = log.id;
+      // Create initial pending log only if TOOLS_LOG capability is present
+      if (hasToolsLogCapability) {
+        const log = await toolLogManager.createLog(
+          originalToolName,
+          mcpServerUuid,
+          args || {}
+        );
+        logId = log.id;
+      }
 
       // Reset the timer right before making the actual tool call
       startTime = Date.now();
@@ -207,8 +216,8 @@ export const createServer = async () => {
 
       const executionTime = Date.now() - startTime;
 
-      // Update log with success result
-      if (logId) {
+      // Update log with success result only if TOOLS_LOG capability is present
+      if (hasToolsLogCapability && logId) {
         await toolLogManager.completeLog(logId, result, executionTime);
       }
 
@@ -216,8 +225,8 @@ export const createServer = async () => {
     } catch (error: any) {
       const executionTime = Date.now() - startTime;
 
-      // Update log with error
-      if (logId) {
+      // Update log with error only if TOOLS_LOG capability is present
+      if (hasToolsLogCapability && logId) {
         await toolLogManager.failLog(
           logId,
           error.message || "Unknown error",

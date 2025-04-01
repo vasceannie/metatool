@@ -1,5 +1,9 @@
 import axios from "axios";
 import { getMetaMcpApiBaseUrl, getMetaMcpApiKey } from "./utils.js";
+import {
+  ProfileCapability,
+  getProfileCapabilities,
+} from "./fetch-capabilities.js";
 
 // Define status enum for tool execution
 export enum ToolExecutionStatus {
@@ -58,6 +62,12 @@ export class ToolLogManager {
     serverUuid: string,
     payload: any
   ): Promise<ToolExecutionLog> {
+    // Check for TOOLS_LOG capability first
+    const profileCapabilities = await getProfileCapabilities();
+    const hasToolsLogCapability = profileCapabilities.includes(
+      ProfileCapability.TOOLS_LOG
+    );
+
     // Generate a temporary ID for tracking
     const tempId = `${Date.now()}-${Math.random()
       .toString(36)
@@ -76,15 +86,17 @@ export class ToolLogManager {
     // Store in memory
     this.logStore.set(tempId, log);
 
-    // Submit to API
-    const response = await reportToolExecutionLog(log);
+    // Submit to API only if TOOLS_LOG capability is present
+    if (hasToolsLogCapability) {
+      const response = await reportToolExecutionLog(log);
 
-    // Update with real ID if available
-    if (response.success && response.data?.id) {
-      const newId = response.data.id;
-      log.id = newId;
-      this.logStore.delete(tempId);
-      this.logStore.set(newId, log);
+      // Update with real ID if available
+      if (response.success && response.data?.id) {
+        const newId = response.data.id;
+        log.id = newId;
+        this.logStore.delete(tempId);
+        this.logStore.set(newId, log);
+      }
     }
 
     return log;
@@ -123,13 +135,21 @@ export class ToolLogManager {
     // Update in memory
     this.logStore.set(logId, log);
 
-    // Send update to API
-    await updateToolExecutionLog(logId, {
-      status,
-      result,
-      error_message: errorMessage,
-      execution_time_ms: executionTimeMs,
-    });
+    // Check for TOOLS_LOG capability before sending update to API
+    const profileCapabilities = await getProfileCapabilities();
+    const hasToolsLogCapability = profileCapabilities.includes(
+      ProfileCapability.TOOLS_LOG
+    );
+
+    // Send update to API only if TOOLS_LOG capability is present
+    if (hasToolsLogCapability) {
+      await updateToolExecutionLog(logId, {
+        status,
+        result,
+        error_message: errorMessage,
+        execution_time_ms: executionTimeMs,
+      });
+    }
 
     return log;
   }
@@ -195,6 +215,16 @@ export async function reportToolExecutionLog(
   logData: ToolExecutionLog
 ): Promise<ToolLogResponse> {
   try {
+    // Check for TOOLS_LOG capability first
+    const profileCapabilities = await getProfileCapabilities();
+    const hasToolsLogCapability = profileCapabilities.includes(
+      ProfileCapability.TOOLS_LOG
+    );
+
+    if (!hasToolsLogCapability) {
+      return { success: false, error: "TOOLS_LOG capability not enabled" };
+    }
+
     const apiKey = getMetaMcpApiKey();
     const apiBaseUrl = getMetaMcpApiBaseUrl();
 
@@ -275,6 +305,16 @@ export async function updateToolExecutionLog(
   updateData: Partial<ToolExecutionLog>
 ): Promise<ToolLogResponse> {
   try {
+    // Check for TOOLS_LOG capability first
+    const profileCapabilities = await getProfileCapabilities();
+    const hasToolsLogCapability = profileCapabilities.includes(
+      ProfileCapability.TOOLS_LOG
+    );
+
+    if (!hasToolsLogCapability) {
+      return { success: false, error: "TOOLS_LOG capability not enabled" };
+    }
+
     const apiKey = getMetaMcpApiKey();
     const apiBaseUrl = getMetaMcpApiBaseUrl();
 
@@ -359,6 +399,16 @@ export async function logToolExecution(
   errorMessage: string | null = null,
   executionTimeMs: number = 0
 ): Promise<ToolLogResponse> {
+  // Check for TOOLS_LOG capability first
+  const profileCapabilities = await getProfileCapabilities();
+  const hasToolsLogCapability = profileCapabilities.includes(
+    ProfileCapability.TOOLS_LOG
+  );
+
+  if (!hasToolsLogCapability) {
+    return { success: false, error: "TOOLS_LOG capability not enabled" };
+  }
+
   const logData: ToolExecutionLog = {
     tool_name: toolName,
     mcp_server_uuid: serverUuid,
