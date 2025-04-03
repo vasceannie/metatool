@@ -214,7 +214,6 @@ export class ToolLogManager {
 export async function reportToolExecutionLog(
   logData: ToolExecutionLog
 ): Promise<ToolLogResponse> {
-  console.error("reportToolExecutionLog", logData);
   try {
     // Check for TOOL_LOGS capability first
     const profileCapabilities = await getProfileCapabilities();
