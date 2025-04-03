@@ -180,13 +180,13 @@ export const createServer = async () => {
       throw new Error(`Tool is inactive: ${name}`);
     }
 
-    // Check if TOOLS_LOG capability is enabled
+    // Check if TOOL_LOGS capability is enabled
     const hasToolsLogCapability = profileCapabilities.includes(
-      ProfileCapability.TOOLS_LOG
+      ProfileCapability.TOOL_LOGS
     );
 
     try {
-      // Create initial pending log only if TOOLS_LOG capability is present
+      // Create initial pending log only if TOOL_LOGS capability is present
       if (hasToolsLogCapability) {
         const log = await toolLogManager.createLog(
           originalToolName,
@@ -216,7 +216,7 @@ export const createServer = async () => {
 
       const executionTime = Date.now() - startTime;
 
-      // Update log with success result only if TOOLS_LOG capability is present
+      // Update log with success result only if TOOL_LOGS capability is present
       if (hasToolsLogCapability && logId) {
         await toolLogManager.completeLog(logId, result, executionTime);
       }
@@ -225,7 +225,7 @@ export const createServer = async () => {
     } catch (error: any) {
       const executionTime = Date.now() - startTime;
 
-      // Update log with error only if TOOLS_LOG capability is present
+      // Update log with error only if TOOL_LOGS capability is present
       if (hasToolsLogCapability && logId) {
         await toolLogManager.failLog(
           logId,

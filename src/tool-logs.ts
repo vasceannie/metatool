@@ -62,10 +62,10 @@ export class ToolLogManager {
     serverUuid: string,
     payload: any
   ): Promise<ToolExecutionLog> {
-    // Check for TOOLS_LOG capability first
+    // Check for TOOL_LOGS capability first
     const profileCapabilities = await getProfileCapabilities();
     const hasToolsLogCapability = profileCapabilities.includes(
-      ProfileCapability.TOOLS_LOG
+      ProfileCapability.TOOL_LOGS
     );
 
     // Generate a temporary ID for tracking
@@ -86,7 +86,7 @@ export class ToolLogManager {
     // Store in memory
     this.logStore.set(tempId, log);
 
-    // Submit to API only if TOOLS_LOG capability is present
+    // Submit to API only if TOOL_LOGS capability is present
     if (hasToolsLogCapability) {
       const response = await reportToolExecutionLog(log);
 
@@ -135,13 +135,13 @@ export class ToolLogManager {
     // Update in memory
     this.logStore.set(logId, log);
 
-    // Check for TOOLS_LOG capability before sending update to API
+    // Check for TOOL_LOGS capability before sending update to API
     const profileCapabilities = await getProfileCapabilities();
     const hasToolsLogCapability = profileCapabilities.includes(
-      ProfileCapability.TOOLS_LOG
+      ProfileCapability.TOOL_LOGS
     );
 
-    // Send update to API only if TOOLS_LOG capability is present
+    // Send update to API only if TOOL_LOGS capability is present
     if (hasToolsLogCapability) {
       await updateToolExecutionLog(logId, {
         status,
@@ -214,15 +214,16 @@ export class ToolLogManager {
 export async function reportToolExecutionLog(
   logData: ToolExecutionLog
 ): Promise<ToolLogResponse> {
+  console.error("reportToolExecutionLog", logData);
   try {
-    // Check for TOOLS_LOG capability first
+    // Check for TOOL_LOGS capability first
     const profileCapabilities = await getProfileCapabilities();
     const hasToolsLogCapability = profileCapabilities.includes(
-      ProfileCapability.TOOLS_LOG
+      ProfileCapability.TOOL_LOGS
     );
 
     if (!hasToolsLogCapability) {
-      return { success: false, error: "TOOLS_LOG capability not enabled" };
+      return { success: false, error: "TOOL_LOGS capability not enabled" };
     }
 
     const apiKey = getMetaMcpApiKey();
@@ -305,14 +306,14 @@ export async function updateToolExecutionLog(
   updateData: Partial<ToolExecutionLog>
 ): Promise<ToolLogResponse> {
   try {
-    // Check for TOOLS_LOG capability first
+    // Check for TOOL_LOGS capability first
     const profileCapabilities = await getProfileCapabilities();
     const hasToolsLogCapability = profileCapabilities.includes(
-      ProfileCapability.TOOLS_LOG
+      ProfileCapability.TOOL_LOGS
     );
 
     if (!hasToolsLogCapability) {
-      return { success: false, error: "TOOLS_LOG capability not enabled" };
+      return { success: false, error: "TOOL_LOGS capability not enabled" };
     }
 
     const apiKey = getMetaMcpApiKey();
@@ -399,14 +400,14 @@ export async function logToolExecution(
   errorMessage: string | null = null,
   executionTimeMs: number = 0
 ): Promise<ToolLogResponse> {
-  // Check for TOOLS_LOG capability first
+  // Check for TOOL_LOGS capability first
   const profileCapabilities = await getProfileCapabilities();
   const hasToolsLogCapability = profileCapabilities.includes(
-    ProfileCapability.TOOLS_LOG
+    ProfileCapability.TOOL_LOGS
   );
 
   if (!hasToolsLogCapability) {
-    return { success: false, error: "TOOLS_LOG capability not enabled" };
+    return { success: false, error: "TOOL_LOGS capability not enabled" };
   }
 
   const logData: ToolExecutionLog = {
