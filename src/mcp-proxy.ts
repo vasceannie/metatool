@@ -218,7 +218,9 @@ export const createServer = async () => {
 
       // Update log with success result only if TOOL_LOGS capability is present
       if (hasToolsLogCapability && logId) {
-        await toolLogManager.completeLog(logId, result, executionTime);
+        try {
+          await toolLogManager.completeLog(logId, result, executionTime);
+        } catch (logError) {}
       }
 
       return result;
@@ -227,11 +229,13 @@ export const createServer = async () => {
 
       // Update log with error only if TOOL_LOGS capability is present
       if (hasToolsLogCapability && logId) {
-        await toolLogManager.failLog(
-          logId,
-          error.message || "Unknown error",
-          executionTime
-        );
+        try {
+          await toolLogManager.failLog(
+            logId,
+            error.message || "Unknown error",
+            executionTime
+          );
+        } catch (logError) {}
       }
 
       console.error(
