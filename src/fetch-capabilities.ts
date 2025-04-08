@@ -3,6 +3,7 @@ import { getMetaMcpApiBaseUrl, getMetaMcpApiKey } from "./utils.js";
 
 export enum ProfileCapability {
   TOOLS_MANAGEMENT = "TOOLS_MANAGEMENT",
+  TOOL_LOGS = "TOOL_LOGS",
 }
 
 let _capabilitiesCache: ProfileCapability[] | null = null;
