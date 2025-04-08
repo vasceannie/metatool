@@ -26,8 +26,7 @@ export const createMetaMcpClient = (
       command: serverParams.command || "",
       args: serverParams.args || undefined,
       env: serverParams.env || undefined,
-      // Use default values for other optional properties
-      // stderr and cwd will use their default values
+      stderr: "ignore",
     };
     transport = new StdioClientTransport(stdioParams);
   } else if (serverParams.type === "SSE" && serverParams.url) {
