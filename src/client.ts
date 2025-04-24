@@ -30,7 +30,22 @@ export const createMetaMcpClient = (
     };
     transport = new StdioClientTransport(stdioParams);
   } else if (serverParams.type === "SSE" && serverParams.url) {
-    transport = new SSEClientTransport(new URL(serverParams.url));
+    if (!serverParams.oauth_tokens) {
+      transport = new SSEClientTransport(new URL(serverParams.url));
+    } else {
+      const headers: HeadersInit = {};
+      headers[
+        "Authorization"
+      ] = `Bearer ${serverParams.oauth_tokens.access_token}`;
+      transport = new SSEClientTransport(new URL(serverParams.url), {
+        requestInit: {
+          headers,
+        },
+        eventSourceInit: {
+          fetch: (url, init) => fetch(url, { ...init, headers }),
+        },
+      });
+    }
   } else {
     console.error(`Unsupported server type: ${serverParams.type}`);
     return { client: undefined, transport: undefined };
