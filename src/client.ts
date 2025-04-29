@@ -14,6 +14,16 @@ export interface ConnectedClient {
   cleanup: () => Promise<void>;
 }
 
+/**
+ * Transforms localhost URLs to use host.docker.internal when running inside Docker
+ */
+const transformDockerUrl = (url: string): string => {
+  if (process.env.USE_DOCKER_HOST === "true") {
+    return url.replace(/localhost|127\.0\.0\.1/g, "host.docker.internal");
+  }
+  return url;
+};
+
 export const createMetaMcpClient = (
   serverParams: ServerParameters
 ): { client: Client | undefined; transport: Transport | undefined } => {
@@ -30,14 +40,17 @@ export const createMetaMcpClient = (
     };
     transport = new StdioClientTransport(stdioParams);
   } else if (serverParams.type === "SSE" && serverParams.url) {
+    // Transform the URL if USE_DOCKER_HOST is set to "true"
+    const transformedUrl = transformDockerUrl(serverParams.url);
+
     if (!serverParams.oauth_tokens) {
-      transport = new SSEClientTransport(new URL(serverParams.url));
+      transport = new SSEClientTransport(new URL(transformedUrl));
     } else {
       const headers: HeadersInit = {};
       headers[
         "Authorization"
       ] = `Bearer ${serverParams.oauth_tokens.access_token}`;
-      transport = new SSEClientTransport(new URL(serverParams.url), {
+      transport = new SSEClientTransport(new URL(transformedUrl), {
         requestInit: {
           headers,
         },
