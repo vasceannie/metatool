@@ -18,7 +18,7 @@ services:
 
   metatool-remote-hosting:
     build:
-      context: /nas/metatool-app/remote-hosting
+      context: ./remote-hosting
       dockerfile: Dockerfile
       target: runner
     env_file:
@@ -32,7 +32,6 @@ services:
       - "host.docker.internal:host-gateway"
 
   metatool-postgres:
-    container_name: metatool-postgres
     image: postgres:16.2-alpine3.18
     restart: always
     environment:
