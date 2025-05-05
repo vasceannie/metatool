@@ -5,7 +5,7 @@ services:
       dockerfile: Dockerfile
       target: runner
     env_file:
-      - .env
+      - ./.env
     restart: always
     expose:
       - '3000'
@@ -18,10 +18,11 @@ services:
 
   metatool-remote-hosting:
     build:
-      context: ./remote-hosting
+      context: /nas/metatool-app/remote-hosting
       dockerfile: Dockerfile
+      target: runner
     env_file:
-      - .env
+      - ./.env
     restart: always
     expose:
       - '12007'
@@ -55,7 +56,7 @@ services:
       target: migrator
     command: pnpm drizzle-kit migrate
     env_file:
-      - .env
+      - ./.env
     depends_on:
       metatool-postgres:
         condition: service_healthy
@@ -63,4 +64,3 @@ services:
 volumes:
   metatool-postgres:
     driver: local
-
