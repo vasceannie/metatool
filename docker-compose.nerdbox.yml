@@ -63,3 +63,4 @@ services:
 volumes:
   metatool-postgres:
     driver: local
+
