@@ -7,8 +7,8 @@ services:
     env_file:
       - ./.env
     restart: always
-    expose:
-      - '3000'
+    ports:
+      - '12005:3000'
     environment:
       - NODE_ENV=production
     depends_on:
