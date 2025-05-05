@@ -20,7 +20,6 @@ services:
     build:
       context: ./remote-hosting
       dockerfile: Dockerfile
-      target: runner
     env_file:
       - ./.env
     restart: always
