@@ -23,8 +23,8 @@ services:
     env_file:
       - ./.env
     restart: always
-    expose:
-      - '12007'
+    ports:
+      - '12007:12007'
     environment:
       - NODE_ENV=production
     extra_hosts:
@@ -37,8 +37,8 @@ services:
       POSTGRES_DB: metatool
       POSTGRES_USER: metatool
       POSTGRES_PASSWORD: m3t4t00l
-    expose:
-      - '5432'
+    ports:
+      - '8432:5432'
     volumes:
       - metatool-postgres:/var/lib/postgresql/data
     healthcheck:
