@@ -15,6 +15,9 @@ services:
       - metatool-postgres
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    volumes:
+      - /etc/easypanel:/files/easypanel
+      - /home/vasceannie/repos/competitor-costing:/files/biz-bud
 
   metatool-remote-hosting:
     build:
@@ -29,6 +32,9 @@ services:
       - NODE_ENV=production
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    volumes:
+      - /etc/easypanel:/files/easypanel
+      - /home/vasceannie/repos/competitor-costing:/files/biz-bud
 
   metatool-postgres:
     image: postgres:16.2-alpine3.18
