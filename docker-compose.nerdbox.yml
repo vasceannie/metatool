@@ -64,6 +64,7 @@ services:
     depends_on:
       metatool-postgres:
         condition: service_healthy
+    restart: "no"
 
 volumes:
   metatool-postgres:
