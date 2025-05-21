@@ -5,12 +5,12 @@ import {
   getMetaMcpApiKey,
 } from "./utils.js";
 
-// Define a new interface for server parameters that can be either STDIO or SSE
+// Define a new interface for server parameters that can be STDIO, SSE or STREAMABLE_HTTP
 export interface ServerParameters {
   uuid: string;
   name: string;
   description: string;
-  type?: "STDIO" | "SSE"; // Optional field, defaults to "STDIO" when undefined
+  type?: "STDIO" | "SSE" | "STREAMABLE_HTTP"; // Optional field, defaults to "STDIO" when undefined
   command?: string | null;
   args?: string[] | null;
   env?: Record<string, string> | null;
@@ -78,11 +78,11 @@ export async function getMcpServers(
           ...getDefaultEnvironment(),
           ...(params.env || {}),
         };
-      } else if (params.type === "SSE") {
-        // For SSE servers, ensure url is present
+      } else if (params.type === "SSE" || params.type === "STREAMABLE_HTTP") {
+        // For SSE or STREAMABLE_HTTP servers, ensure url is present
         if (!params.url) {
           console.warn(
-            `SSE server ${params.uuid} is missing url field, skipping`
+            `${params.type} server ${params.uuid} is missing url field, skipping`
           );
           continue;
         }

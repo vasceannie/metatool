@@ -6,6 +6,7 @@ import { Command } from "commander";
 import { reportAllTools } from "./report-tools.js";
 import { cleanupAllSessions } from "./sessions.js";
 import { startSSEServer } from "./sse.js";
+import { startStreamableHTTPServer } from "./streamable-http.js";
 
 const program = new Command();
 
@@ -24,9 +25,10 @@ program
     "--report",
     "Fetch all MCPs, initialize clients, and report tools to MetaMCP API"
   )
-  .option("--transport <type>", "Transport type to use (stdio or sse)", "stdio")
-  .option("--port <port>", "Port to use for SSE transport", "3001")
-  .option("--require-api-auth", "Require API key in SSE URL path")
+  .option("--transport <type>", "Transport type to use (stdio, sse, or streamable-http)", "stdio")
+  .option("--port <port>", "Port to use for SSE or Streamable HTTP transport, defaults to 12006", "12006")
+  .option("--require-api-auth", "Require API key in SSE or Streamable HTTP URL path")
+  .option("--stateless", "Use stateless mode for Streamable HTTP transport")
   .option(
     "--use-docker-host",
     "Transform localhost URLs to use host.docker.internal (can also be set via USE_DOCKER_HOST env var)"
@@ -68,6 +70,25 @@ async function main() {
     const handleExit = async () => {
       await cleanup();
       await sseCleanup();
+      await server.close();
+      process.exit(0);
+    };
+
+    process.on("SIGINT", handleExit);
+    process.on("SIGTERM", handleExit);
+  } else if (options.transport.toLowerCase() === "streamable-http") {
+    // Start Streamable HTTP server
+    const port = parseInt(options.port) || 12006;
+    const streamableHttpCleanup = await startStreamableHTTPServer(server, {
+      port,
+      requireApiAuth: options.requireApiAuth,
+      stateless: options.stateless,
+    });
+
+    // Cleanup on exit
+    const handleExit = async () => {
+      await cleanup();
+      await streamableHttpCleanup();
       await server.close();
       process.exit(0);
     };

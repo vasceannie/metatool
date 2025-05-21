@@ -82,7 +82,7 @@ export function computeParamsHash(
           )
         : null,
     };
-  } else if (params.type === "SSE") {
+  } else if (params.type === "SSE" || params.type === "STREAMABLE_HTTP") {
     paramsDict = {
       uuid,
       type: params.type,

@@ -4,6 +4,7 @@ import {
   StdioServerParameters,
 } from "@modelcontextprotocol/sdk/client/stdio.js";
 import { SSEClientTransport } from "@modelcontextprotocol/sdk/client/sse.js";
+import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import { Transport } from "@modelcontextprotocol/sdk/shared/transport.js";
 import { ServerParameters } from "./fetch-metamcp.js";
 
@@ -56,6 +57,23 @@ export const createMetaMcpClient = (
         },
         eventSourceInit: {
           fetch: (url, init) => fetch(url, { ...init, headers }),
+        },
+      });
+    }
+  } else if (serverParams.type === "STREAMABLE_HTTP" && serverParams.url) {
+    // Transform the URL if USE_DOCKER_HOST is set to "true"
+    const transformedUrl = transformDockerUrl(serverParams.url);
+
+    if (!serverParams.oauth_tokens) {
+      transport = new StreamableHTTPClientTransport(new URL(transformedUrl));
+    } else {
+      const headers: HeadersInit = {};
+      headers[
+        "Authorization"
+      ] = `Bearer ${serverParams.oauth_tokens.access_token}`;
+      transport = new StreamableHTTPClientTransport(new URL(transformedUrl), {
+        requestInit: {
+          headers,
         },
       });
     }
