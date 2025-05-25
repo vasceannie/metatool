@@ -46,6 +46,19 @@ export const createMetaMcpClient = (
       stderr: stderrValue,
     };
     transport = new StdioClientTransport(stdioParams);
+
+    // Handle stderr stream when set to "pipe"
+    if (stderrValue === "pipe" && (transport as any).stderr) {
+      const stderrStream = (transport as any).stderr;
+      
+      stderrStream.on('data', (chunk: Buffer) => {
+        console.error(`[MetaMCP] ${chunk.toString().trim()}`);
+      });
+      
+      stderrStream.on('error', (error: Error) => {
+        console.error(`[MetaMCP] stderr error:`, error);
+      });
+    }
   } else if (serverParams.type === "SSE" && serverParams.url) {
     // Transform the URL if USE_DOCKER_HOST is set to "true"
     const transformedUrl = transformDockerUrl(serverParams.url);
@@ -91,7 +104,7 @@ export const createMetaMcpClient = (
   const client = new Client(
     {
       name: "MetaMCP",
-      version: "0.6.1",
+      version: "0.6.3",
     },
     {
       capabilities: {
