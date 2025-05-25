@@ -7,6 +7,7 @@ import { reportAllTools } from "./report-tools.js";
 import { cleanupAllSessions } from "./sessions.js";
 import { startSSEServer } from "./sse.js";
 import { startStreamableHTTPServer } from "./streamable-http.js";
+import { IOType } from "./fetch-metamcp.js";
 
 const program = new Command();
 
@@ -33,9 +34,21 @@ program
     "--use-docker-host",
     "Transform localhost URLs to use host.docker.internal (can also be set via USE_DOCKER_HOST env var)"
   )
+  .option(
+    "--stderr <type>",
+    "Stderr handling for STDIO transport (overlapped, pipe, ignore, inherit)",
+    "ignore"
+  )
   .parse(process.argv);
 
 const options = program.opts();
+
+// Validate stderr option
+const validStderrTypes: IOType[] = ["overlapped", "pipe", "ignore", "inherit"];
+if (!validStderrTypes.includes(options.stderr as IOType)) {
+  console.error(`Invalid stderr type: ${options.stderr}. Must be one of: ${validStderrTypes.join(", ")}`);
+  process.exit(1);
+}
 
 // Set environment variables from command line arguments
 if (options.metamcpApiKey) {
@@ -46,6 +59,9 @@ if (options.metamcpApiBaseUrl) {
 }
 if (options.useDockerHost) {
   process.env.USE_DOCKER_HOST = "true";
+}
+if (options.stderr) {
+  process.env.METAMCP_STDERR = options.stderr;
 }
 
 async function main() {

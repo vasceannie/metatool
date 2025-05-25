@@ -61,6 +61,14 @@ mcp-server-metamcp --metamcp-api-key <your-api-key> --transport sse --port 12006
 
 With the SSE transport option, the server will start an Express.js web server that listens for SSE connections on the `/sse` endpoint and accepts messages on the `/messages` endpoint.
 
+### Using as a Streamable HTTP server
+
+```bash
+mcp-server-metamcp --metamcp-api-key <your-api-key> --transport streamable-http --port 12006
+```
+
+With the Streamable HTTP transport option, the server will start an Express.js web server that handles HTTP requests. You can optionally use `--stateless` mode for stateless operation.
+
 ### Using with Docker
 
 When running the server inside a Docker container and connecting to services on the host machine, use the `--use-docker-host` option to automatically transform localhost URLs:
@@ -71,6 +79,27 @@ mcp-server-metamcp --metamcp-api-key <your-api-key> --transport sse --port 12006
 
 This will transform any localhost or 127.0.0.1 URLs to `host.docker.internal`, allowing the container to properly connect to services running on the host.
 
+### Configuring stderr handling
+
+For STDIO transport, you can control how stderr is handled from child MCP processes:
+
+```bash
+# Use inherit to see stderr output from child processes
+mcp-server-metamcp --metamcp-api-key <your-api-key> --stderr inherit
+
+# Use pipe to capture stderr (default is ignore)
+mcp-server-metamcp --metamcp-api-key <your-api-key> --stderr pipe
+
+# Or set via environment variable
+METAMCP_STDERR=inherit mcp-server-metamcp --metamcp-api-key <your-api-key>
+```
+
+Available stderr options:
+- `ignore` (default): Ignore stderr output from child processes
+- `inherit`: Pass through stderr from child processes to the parent
+- `pipe`: Capture stderr in a pipe for processing
+- `overlapped`: Use overlapped I/O (Windows-specific)
+
 ### Command Line Options
 
 ```
@@ -78,10 +107,12 @@ Options:
   --metamcp-api-key <key>       API key for MetaMCP (can also be set via METAMCP_API_KEY env var)
   --metamcp-api-base-url <url>  Base URL for MetaMCP API (can also be set via METAMCP_API_BASE_URL env var)
   --report                      Fetch all MCPs, initialize clients, and report tools to MetaMCP API
-  --transport <type>            Transport type to use (stdio or sse) (default: "stdio")
-  --port <port>                 Port to use for SSE transport (default: "12006")
-  --require-api-auth            Require API key in SSE URL path
+  --transport <type>            Transport type to use (stdio, sse, or streamable-http) (default: "stdio")
+  --port <port>                 Port to use for SSE or Streamable HTTP transport, defaults to 12006 (default: "12006")
+  --require-api-auth            Require API key in SSE or Streamable HTTP URL path
+  --stateless                   Use stateless mode for Streamable HTTP transport
   --use-docker-host             Transform localhost URLs to use host.docker.internal (can also be set via USE_DOCKER_HOST env var)
+  --stderr <type>               Stderr handling for STDIO transport (overlapped, pipe, ignore, inherit) (default: "ignore")
   -h, --help                    display help for command
 ```
 
@@ -90,6 +121,7 @@ Options:
 - `METAMCP_API_KEY`: API key for MetaMCP
 - `METAMCP_API_BASE_URL`: Base URL for MetaMCP API
 - `USE_DOCKER_HOST`: When set to "true", transforms localhost URLs to host.docker.internal for Docker compatibility
+- `METAMCP_STDERR`: Stderr handling for STDIO transport (overlapped, pipe, ignore, inherit). Defaults to "ignore"
 
 ## Development
 

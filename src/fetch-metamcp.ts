@@ -5,6 +5,9 @@ import {
   getMetaMcpApiKey,
 } from "./utils.js";
 
+// Define IOType for stderr handling
+export type IOType = "overlapped" | "pipe" | "ignore" | "inherit";
+
 // Define a new interface for server parameters that can be STDIO, SSE or STREAMABLE_HTTP
 export interface ServerParameters {
   uuid: string;
@@ -14,6 +17,7 @@ export interface ServerParameters {
   command?: string | null;
   args?: string[] | null;
   env?: Record<string, string> | null;
+  stderr?: IOType; // Optional field for stderr handling, defaults to "ignore"
   url?: string | null;
   created_at: string;
   profile_uuid: string;

@@ -6,7 +6,7 @@ import {
 import { SSEClientTransport } from "@modelcontextprotocol/sdk/client/sse.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import { Transport } from "@modelcontextprotocol/sdk/shared/transport.js";
-import { ServerParameters } from "./fetch-metamcp.js";
+import { ServerParameters, IOType } from "./fetch-metamcp.js";
 
 const sleep = (time: number) =>
   new Promise<void>((resolve) => setTimeout(() => resolve(), time));
@@ -33,11 +33,17 @@ export const createMetaMcpClient = (
   // Create the appropriate transport based on server type
   // Default to "STDIO" if type is undefined
   if (!serverParams.type || serverParams.type === "STDIO") {
+    // Get stderr value from serverParams, environment variable, or default to "ignore"
+    const stderrValue: IOType = 
+      serverParams.stderr || 
+      (process.env.METAMCP_STDERR as IOType) || 
+      "ignore";
+
     const stdioParams: StdioServerParameters = {
       command: serverParams.command || "",
       args: serverParams.args || undefined,
       env: serverParams.env || undefined,
-      stderr: "ignore",
+      stderr: stderrValue,
     };
     transport = new StdioClientTransport(stdioParams);
   } else if (serverParams.type === "SSE" && serverParams.url) {
@@ -85,7 +91,7 @@ export const createMetaMcpClient = (
   const client = new Client(
     {
       name: "MetaMCP",
-      version: "0.6.0",
+      version: "0.6.1",
     },
     {
       capabilities: {
