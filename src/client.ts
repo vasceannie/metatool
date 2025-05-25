@@ -52,11 +52,11 @@ export const createMetaMcpClient = (
       const stderrStream = (transport as any).stderr;
       
       stderrStream.on('data', (chunk: Buffer) => {
-        console.error(`[MetaMCP] ${chunk.toString().trim()}`);
+        console.error(`[${serverParams.name}] ${chunk.toString().trim()}`);
       });
-      
+
       stderrStream.on('error', (error: Error) => {
-        console.error(`[MetaMCP] stderr error:`, error);
+        console.error(`[${serverParams.name}] stderr error:`, error);
       });
     }
   } else if (serverParams.type === "SSE" && serverParams.url) {
@@ -104,7 +104,7 @@ export const createMetaMcpClient = (
   const client = new Client(
     {
       name: "MetaMCP",
-      version: "0.6.3",
+      version: "0.6.4",
     },
     {
       capabilities: {
