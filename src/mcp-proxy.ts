@@ -110,7 +110,7 @@ export const createServer = async () => {
                 return {
                   ...tool,
                   name: toolName,
-                  description: `[${serverName}] ${tool.description || ""}`,
+                  description: tool.description,
                 };
               }) || [];
 
@@ -317,7 +317,7 @@ export const createServer = async () => {
               return {
                 ...prompt,
                 name: promptName,
-                description: `[${serverName}] ${prompt.description || ""}`,
+                description: prompt.description || "",
               };
             });
             allPrompts.push(...promptsWithSource);
@@ -367,7 +367,7 @@ export const createServer = async () => {
               resourceToClient[resource.uri] = session;
               return {
                 ...resource,
-                name: `[${serverName}] ${resource.name || ""}`,
+                name: resource.name || "",
               };
             });
             allResources.push(...resourcesWithSource);
@@ -431,7 +431,6 @@ export const createServer = async () => {
           const capabilities = session.client.getServerCapabilities();
           if (!capabilities?.resources) return;
 
-          const serverName = session.client.getServerVersion()?.name || "";
           try {
             const result = await session.client.request(
               {
@@ -448,7 +447,7 @@ export const createServer = async () => {
               const templatesWithSource = result.resourceTemplates.map(
                 (template) => ({
                   ...template,
-                  name: `[${serverName}] ${template.name || ""}`,
+                  name: template.name || "",
                 })
               );
               allTemplates.push(...templatesWithSource);
