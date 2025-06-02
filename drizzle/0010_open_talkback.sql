@@ -1,0 +1,2 @@
+CREATE TYPE "public"."profile_capability" AS ENUM('TOOLS_MANAGEMENT');--> statement-breakpoint
+ALTER TABLE "profiles" ADD COLUMN "enabled_capabilities" "profile_capability"[] DEFAULT '{}'::profile_capability[] NOT NULL;

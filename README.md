@@ -1,35 +1,69 @@
-# MetaMCP MCP Server
+# MetaMCP (Unified middleware MCP to manage all your MCPs)
 
-[https://metamcp.com](https://metamcp.com): The One MCP to manage all your MCPs
+[![](https://dcbadge.limes.pink/api/server/mNsyat7mFX)](https://discord.gg/mNsyat7mFX)
 
-MetaMCP MCP Server is a proxy server that joins multiple MCP⁠ servers into one. It fetches tool/prompt/resource configurations from MetaMCP App⁠ and routes tool/prompt/resource requests to the correct underlying server.
+MetaMCP is the unified middleware MCP to manage all your MCPs. It uses a GUI fullstack app (this repo) and a local MCP proxy to achieve this. (see our latest npm repo [mcp-server-metamcp](https://github.com/metatool-ai/mcp-server-metamcp))
 
-[![smithery badge](https://smithery.ai/badge/@metatool-ai/mcp-server-metamcp)](https://smithery.ai/server/@metatool-ai/mcp-server-metamcp)
+A few feature highlights:
 
-<a href="https://glama.ai/mcp/servers/0po36lc7i6">
-  <img width="380" height="200" src="https://glama.ai/mcp/servers/0po36lc7i6/badge" alt="MetaServer MCP server" />
-</a>
+- GUI app to manage multiple MCP server integrations all together.
+- Support ANY MCP clients (e.g., Claude Desktop, Cursor, etc.) because MetaMCP is a MCP server.
+- Support prompts, resources, tools under MCP.
+- Support multi-workspace: e.g., activate a workspace of DB1 or switch to DB2 in another workspace, preventing polluting context of DB1 to your MCP Client.
+- Tool level toggle on/off
 
-MetaMCP App repo: https://github.com/metatool-ai/metatool-app
+The app is also self hostable, free and open source. There is also a cloud version. You can try how this app works using cloud version but I actually encourage you to self host if you are familiar with docker: it will provide unlimited access with lower latency, full private operations on your end.
+
+Check out demo videos at https://metamcp.com/. Here is an overview screenshot.
+
+![MetaMCP Overview Screenshot](screenshot.png)
+![MetaMCP Tool Management Screenshot](tool_management.png)
+
+## Verified Platform
+
+- [x] Windows (after MCP official typescript SDK 1.8.0, which we updated accordingly, it works) https://github.com/metatool-ai/metatool-app/issues/15
+- [x] Mac
+- [x] Linux
 
 ## Installation
 
-### Installing via Smithery
-
-Sometimes Smithery works (confirmed in Windsurf locally) but sometimes it is unstable because MetaMCP is special that it runs other MCPs on top of it. Please consider using manual installation if it doesn't work instead.
-
-To install MetaMCP MCP Server for Claude Desktop automatically via [Smithery](https://smithery.ai/server/@metatool-ai/mcp-server-metamcp):
+To get started with this self hostable version of MetaMCP App, the eastiest way is to clone the repository and use Docker Compose to run it.
 
 ```bash
-npx -y @smithery/cli install @metatool-ai/mcp-server-metamcp --client claude
+git clone https://github.com/metatool-ai/metatool-app.git
+cd metatool-app
+cp example.env .env
+docker compose up --build -d
 ```
 
-### Manual Installation
+Then open http://localhost:12005 in your browser to open MetaMCP App.
 
-```bash
-export METAMCP_API_KEY=<env>
-npx -y @metamcp/mcp-server-metamcp@latest
+It is recommended to have npx (node.js based mcp) and uvx (python based mcp) installed globally.
+To install uv check: https://docs.astral.sh/uv/getting-started/installation/
+
+### Default Remote Mode SSE endpoint for MetaMCP
+
+The recommended way to connect to MetaMCP is via the SSE endpoint:
+
 ```
+http://localhost:12007/sse with Authorization: Bearer <your-api-key>
+```
+
+Alternatively, if you cannot set headers, you can use this URL-based endpoint:
+
+```
+http://localhost:12007/api-key/<your-api-key>/sse
+```
+
+You can get the API key from the MetaMCP App's API Keys page.
+
+### For Local Access
+
+You can still use these methods even if your workspace is in Default Remote Mode.
+
+#### Claude Desktop Configuration
+
+For Claude Desktop, the config json should look like this:
 
 ```json
 {
@@ -38,138 +72,133 @@ npx -y @metamcp/mcp-server-metamcp@latest
       "command": "npx",
       "args": ["-y", "@metamcp/mcp-server-metamcp@latest"],
       "env": {
-        "METAMCP_API_KEY": "<your api key>"
+        "METAMCP_API_KEY": "<your api key>",
+        "METAMCP_API_BASE_URL": "http://localhost:12005"
       }
     }
   }
 }
 ```
 
-## Usage
+#### Cursor Configuration
 
-### Using as a stdio server (default)
+For Cursor, env vars aren't easy to get typed in so you may use args instead:
 
 ```bash
-mcp-server-metamcp --metamcp-api-key <your-api-key>
+npx -y @metamcp/mcp-server-metamcp@latest --metamcp-api-key <your-api-key> --metamcp-api-base-url http://localhost:12005
 ```
 
-### Using as an SSE server
+#### Windows Configuration
+
+For Windows, you can use the following command for Cursor:
+
+```bash
+cmd /c npx -y @metamcp/mcp-server-metamcp@latest --metamcp-api-key <your-api-key> --metamcp-api-base-url http://localhost:12005
+```
+
+Or configure it using json:
+
+```json
+{
+  "mcpServers": {
+    "MetaMCP": {
+      "command": "cmd",
+      "args": [
+        "/c",
+        "npx",
+        "-y",
+        "@metamcp/mcp-server-metamcp@latest"
+      ],
+      "env": {
+        "METAMCP_API_KEY": "<your api key>",
+        "METAMCP_API_BASE_URL": "http://localhost:12005"
+      }
+    }
+  }
+}
+```
+
+#### Standalone SSE Server
+
+You can also use the following command to start a standalone SSE server:
 
 ```bash
 mcp-server-metamcp --metamcp-api-key <your-api-key> --transport sse --port 12006
 ```
 
-With the SSE transport option, the server will start an Express.js web server that listens for SSE connections on the `/sse` endpoint and accepts messages on the `/messages` endpoint.
+Then use following json configuration:
 
-### Using as a Streamable HTTP server
+```json
+{
+  "mcpServers": {
+    "MetaMCP": {
+      "url": "http://localhost:12006"
+    }
+  }
+}
+```
+
+#### Smithery Windows Configuration
+
+You can also use Smithery to run MCPs in docker on cloud for max compatibility:
 
 ```bash
-mcp-server-metamcp --metamcp-api-key <your-api-key> --transport streamable-http --port 12006
+smithery run @metatool-ai/mcp-server-metamcp --config '{"metamcpApiKey":"<your api key>"}'
 ```
 
-With the Streamable HTTP transport option, the server will start an Express.js web server that handles HTTP requests. You can optionally use `--stateless` mode for stateless operation.
+Or configure it in your Claude Desktop configuration file:
 
-### Using with Docker
-
-When running the server inside a Docker container and connecting to services on the host machine, use the `--use-docker-host` option to automatically transform localhost URLs:
-
-```bash
-mcp-server-metamcp --metamcp-api-key <your-api-key> --transport sse --port 12006 --use-docker-host
+```json
+{
+  "mcpServers": {
+    "MetaMCP": {
+      "command": "smithery",
+      "args": [
+        "run",
+        "@metatool-ai/mcp-server-metamcp",
+        "--config",
+        "{\"metamcpApiKey\":\"<your api key>\"}"
+      ]
+    }
+  }
+}
 ```
 
-This will transform any localhost or 127.0.0.1 URLs to `host.docker.internal`, allowing the container to properly connect to services running on the host.
-
-### Configuring stderr handling
-
-For STDIO transport, you can control how stderr is handled from child MCP processes:
-
-```bash
-# Use inherit to see stderr output from child processes
-mcp-server-metamcp --metamcp-api-key <your-api-key> --stderr inherit
-
-# Use pipe to capture stderr (default is ignore)
-mcp-server-metamcp --metamcp-api-key <your-api-key> --stderr pipe
-
-# Or set via environment variable
-METAMCP_STDERR=inherit mcp-server-metamcp --metamcp-api-key <your-api-key>
-```
-
-Available stderr options:
-- `ignore` (default): Ignore stderr output from child processes
-- `inherit`: Pass through stderr from child processes to the parent
-- `pipe`: Capture stderr in a pipe for processing
-- `overlapped`: Use overlapped I/O (Windows-specific)
-
-### Command Line Options
-
-```
-Options:
-  --metamcp-api-key <key>       API key for MetaMCP (can also be set via METAMCP_API_KEY env var)
-  --metamcp-api-base-url <url>  Base URL for MetaMCP API (can also be set via METAMCP_API_BASE_URL env var)
-  --report                      Fetch all MCPs, initialize clients, and report tools to MetaMCP API
-  --transport <type>            Transport type to use (stdio, sse, or streamable-http) (default: "stdio")
-  --port <port>                 Port to use for SSE or Streamable HTTP transport, defaults to 12006 (default: "12006")
-  --require-api-auth            Require API key in SSE or Streamable HTTP URL path
-  --stateless                   Use stateless mode for Streamable HTTP transport
-  --use-docker-host             Transform localhost URLs to use host.docker.internal (can also be set via USE_DOCKER_HOST env var)
-  --stderr <type>               Stderr handling for STDIO transport (overlapped, pipe, ignore, inherit) (default: "ignore")
-  -h, --help                    display help for command
-```
-
-## Environment Variables
-
-- `METAMCP_API_KEY`: API key for MetaMCP
-- `METAMCP_API_BASE_URL`: Base URL for MetaMCP API
-- `USE_DOCKER_HOST`: When set to "true", transforms localhost URLs to host.docker.internal for Docker compatibility
-- `METAMCP_STDERR`: Stderr handling for STDIO transport (overlapped, pipe, ignore, inherit). Defaults to "ignore"
-
-## Development
-
-```bash
-# Install dependencies
-npm install
-
-# Build the application
-npm run build
-
-# Watch for changes
-npm run watch
-```
-
-## Highlights
-
-- Compatible with ANY MCP Client
-- Multi-Workspaces layer enables you to switch to another set of MCP configs within one-click.
-- GUI dynamic updates of MCP configs.
-- Namespace isolation for joined MCPs.
+You can get the API key from the MetaMCP App's API Keys page.
 
 ## Architecture Overview
 
+Note that prompts and resources are also covered similar to tools.
+
 ```mermaid
 sequenceDiagram
-    participant MCPClient as MCP Client (e.g. Claude Desktop)
-    participant MetaMCP-mcp-server as MetaMCP MCP Server
+    participant MCPClient as MCP Client (e.g., Claude Desktop)
+    participant MetaMCPMCP as MetaMCP MCP Server
     participant MetaMCPApp as MetaMCP App
-    participant MCPServers as Installed MCP Servers in Metatool App
+    participant MCPServers as Installed MCP Servers in MetaMCP App
 
-    MCPClient ->> MetaMCP-mcp-server: Request list tools
-    MetaMCP-mcp-server ->> MetaMCPApp: Get tools configuration & status
-    MetaMCPApp ->> MetaMCP-mcp-server: Return tools configuration & status
+    MCPClient ->> MetaMCPMCP: Request list tools
+    MetaMCPMCP ->> MetaMCPApp: Get tools configuration & status
+    MetaMCPApp ->> MetaMCPMCP: Return tools configuration & status
 
     loop For each listed MCP Server
-        MetaMCP-mcp-server ->> MCPServers: Request list_tools
-        MCPServers ->> MetaMCP-mcp-server: Return list of tools
+        MetaMCPMCP ->> MCPServers: Request list_tools
+        MCPServers ->> MetaMCPMCP: Return list of tools
     end
 
-    MetaMCP-mcp-server ->> MetaMCP-mcp-server: Aggregate tool lists
-    MetaMCP-mcp-server ->> MCPClient: Return aggregated list of tools
+    MetaMCPMCP ->> MetaMCPMCP: Aggregate tool lists
+    MetaMCPMCP ->> MCPClient: Return aggregated list of tools
 
-    MCPClient ->> MetaMCP-mcp-server: Call tool
-    MetaMCP-mcp-server ->> MCPServers: call_tool to target MCP Server
-    MCPServers ->> MetaMCP-mcp-server: Return tool response
-    MetaMCP-mcp-server ->> MCPClient: Return tool response
+    MCPClient ->> MetaMCPMCP: Call tool
+    MetaMCPMCP ->> MCPServers: call_tool to target MCP Server
+    MCPServers ->> MetaMCPMCP: Return tool response
+    MetaMCPMCP ->> MCPClient: Return tool response
 ```
 
-## Credits
+## License
 
-- Inspirations and some code (refactored in this project) from https://github.com/adamwattis/mcp-proxy-server/
+GNU AGPL v3
+
+## Credits
+- Used some oauth codes in https://github.com/modelcontextprotocol/inspector
+- (Deprecated) Demo video uses MCP Client [5ire](https://5ire.app/)

@@ -1,44 +1,65 @@
-# Use the official uv Debian image as base
-FROM ghcr.io/astral-sh/uv:debian
+FROM node:20-alpine AS base
 
-# Install Node.js and npm
-RUN apt-get update && apt-get install -y \
-    curl \
-    gnupg \
-    && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
-    && apt-get install -y nodejs \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+RUN npm i -g corepack@latest
 
-# Verify Node.js and npm installation
-RUN node --version && npm --version
+# Install pnpm
+RUN corepack enable && corepack prepare pnpm@10.8.0 --activate
 
-# Verify uv is installed correctly
-RUN uv --version
-
-# Verify npx is available
-RUN npx --version || npm install -g npx
-
-# Set the working directory
+# Install dependencies only when needed
+FROM base AS deps
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
+# Files needed for pnpm install
+COPY package.json pnpm-lock.yaml* ./
+RUN pnpm install --frozen-lockfile
 
-# Install dependencies
-RUN npm ci
-
-# Copy the rest of the application
+# Rebuild the source code only when needed
+FROM base AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Build the application
-RUN npm run build
+# Disable Next.js telemetry during the build
+ENV NEXT_TELEMETRY_DISABLED 1
 
-# Set environment variables
-ENV NODE_ENV=production
+RUN pnpm build:next
 
-# Expose the application port
+# Migration stage
+FROM base AS migrator
+WORKDIR /app
+
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+
+ENV NODE_ENV production
+CMD ["pnpm", "drizzle-kit", "migrate"]
+
+# Production image, copy all the files and run next
+FROM base AS runner
+WORKDIR /app
+
+ENV NODE_ENV production
+ENV NEXT_TELEMETRY_DISABLED 1
+
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
+
+COPY --from=builder /app/public ./public
+
+# Set the correct permission for prerender cache
+RUN mkdir .next
+RUN chown nextjs:nodejs .next
+
+# Automatically leverage output traces to reduce image size
+COPY --from=builder /app/drizzle.config.ts ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+USER nextjs
+
 EXPOSE 3000
 
-# Run the application
-ENTRYPOINT ["node", "dist/index.js"] 
+ENV PORT 3000
+ENV HOSTNAME "0.0.0.0"
+
+CMD ["node", "server.js"]
