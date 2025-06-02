@@ -22,6 +22,10 @@ COPY . .
 # Disable Next.js telemetry during the build
 ENV NEXT_TELEMETRY_DISABLED 1
 
+# Provide a dummy DATABASE_URL for build time (won't be used in runtime)
+ARG DATABASE_URL=postgresql://dummy:dummy@localhost:5432/dummy
+ENV DATABASE_URL=$DATABASE_URL
+
 RUN pnpm build:next
 
 # Migration stage
