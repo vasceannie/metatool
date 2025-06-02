@@ -8,7 +8,7 @@ services:
     # env_file:
     #   - .env.production.local
     entrypoint: ["/bin/bash"]
-    command: ["-c", "uvx --version && echo 'uvx is working!' && tail -f /dev/null"]
+    command: ["/bin/bash", "-c", "uvx --version && echo 'uvx is working!' && tail -f /dev/null --metamcp-api-base-url http://mcp.lab --stateless --use-docker-host --transport streamable-http"]
     healthcheck:
       test: ["CMD", "ps", "aux", "|", "grep", "tail"]
       interval: 30s
@@ -18,4 +18,3 @@ services:
       - NODE_ENV=production
     restart: unless-stopped
     # Add any additional environment variables or command arguments here
-    command: --metamcp-api-base-url http://mcp.lab --stateless --use-docker-host --transport streamable-http
