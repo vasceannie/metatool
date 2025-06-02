@@ -5,8 +5,11 @@ services:
       context: .
       dockerfile: Dockerfile
       target: runner
-    env_file:
-      - .env
+    # env_file:
+    #   - .env
+    environment:
+      - DATABASE_URL=postgresql://metatool:m3t4t00l@metatool-postgres:5432/metatool
+      - NODE_ENV=production
     restart: always
     ports:
       - '12005:3000'
@@ -22,8 +25,11 @@ services:
     build:
       context: ./remote-hosting
       dockerfile: Dockerfile
-    env_file:
-      - .env
+    # env_file:
+    #   - .env
+    environment:
+      - DATABASE_URL=postgresql://metatool:m3t4t00l@metatool-postgres:5432/metatool
+      - NODE_ENV=production
     restart: always
     ports:
       - '12007:12007'
@@ -57,8 +63,11 @@ services:
       dockerfile: Dockerfile
       target: migrator
     command: pnpm drizzle-kit migrate
-    env_file:
-      - .env
+    environment:
+      - DATABASE_URL=postgresql://metatool:m3t4t00l@metatool-postgres:5432/metatool
+      - NODE_ENV=production
+    # env_file:
+    #   - .env
     depends_on:
       metatool-postgres:
         condition: service_healthy
