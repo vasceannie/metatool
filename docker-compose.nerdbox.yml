@@ -16,8 +16,7 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
-      - /etc/easypanel:/files/easypanel
-      - /home/vasceannie/repos/biz-bud:/biz-bud
+      - /:/
       - /var/run/docker.sock:/var/run/docker.sock
 
   metatool-remote-hosting:
