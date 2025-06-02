@@ -1,5 +1,5 @@
-import { ServerParameters } from "./fetch-metamcp.js";
 import crypto from "crypto";
+import { ServerParameters } from "./fetch-metamcp.js";
 
 /**
  * Environment variables to inherit by default, if an environment is not explicitly given.

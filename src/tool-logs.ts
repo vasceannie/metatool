@@ -1,5 +1,5 @@
-import axios from "axios";
 import { getMetaMcpApiBaseUrl, getMetaMcpApiKey } from "./utils.js";
+import axios from "axios";
 import {
   ProfileCapability,
   getProfileCapabilities,
