@@ -101,7 +101,7 @@ export async function getMcpServers(
     _mcpServersCache = serverDict;
     _mcpServersCacheTimestamp = currentTime;
     return serverDict;
-  } catch (error) {
+  } catch (_error) {
     if (_mcpServersCache !== null) {
       return _mcpServersCache;
     }

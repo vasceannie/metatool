@@ -137,7 +137,7 @@ export const connectMetaMcpClient = async (
           await client.close();
         },
       };
-    } catch (error) {
+    } catch (_error) {
       count++;
       retry = count < retries;
       if (retry) {

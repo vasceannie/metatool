@@ -64,7 +64,7 @@ export async function getProfileCapabilities(
     }
 
     return _capabilitiesCache || [];
-  } catch (error) {
+  } catch (_error) {
     // Return empty array if API doesn't exist or has errors
     if (_capabilitiesCache !== null) {
       return _capabilitiesCache;

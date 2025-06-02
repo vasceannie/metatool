@@ -220,7 +220,7 @@ export const createServer = async () => {
       if (hasToolsLogCapability && logId) {
         try {
           await toolLogManager.completeLog(logId, result, executionTime);
-        } catch (logError) {}
+        } catch (_error) {}
       }
 
       return result;
@@ -235,7 +235,7 @@ export const createServer = async () => {
             error.message || "Unknown error",
             executionTime
           );
-        } catch (logError) {}
+        } catch (_error) {}
       }
 
       console.error(

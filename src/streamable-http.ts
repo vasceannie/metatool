@@ -54,8 +54,8 @@ export async function startStreamableHTTPServer(
         await server.connect(transport);
         // Handle the request
         await transport.handleRequest(req, res, req.body);
-      } catch (error) {
-        console.error("Error handling streamable HTTP request:", error);
+      } catch (_error) {
+        console.error("Error handling streamable HTTP request:", _error);
         if (!res.headersSent) {
           res.status(500).json({
             jsonrpc: "2.0",
@@ -110,8 +110,8 @@ export async function startStreamableHTTPServer(
       try {
         // Handle the request
         await transport.handleRequest(req, res, req.body);
-      } catch (error) {
-        console.error("Error handling streamable HTTP request:", error);
+      } catch (_error) {
+        console.error("Error handling streamable HTTP request:", _error);
         if (!res.headersSent) {
           res.status(500).json({
             jsonrpc: "2.0",

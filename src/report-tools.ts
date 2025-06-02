@@ -168,8 +168,8 @@ export async function reportAllTools() {
         } else {
           console.log(`No tools found for ${params.name}`);
         }
-      } catch (error) {
-        console.error(`Error reporting tools for ${params.name}:`, error);
+      } catch (_error) {
+        console.error(`Error reporting tools for ${params.name}:`, _error);
       }
     })
   );

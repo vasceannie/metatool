@@ -52,7 +52,7 @@ export const initSessions = async (): Promise<void> => {
       const sessionKey = getSessionKey(uuid, params);
       try {
         await getSession(sessionKey, uuid, params);
-      } catch (error) {}
+      } catch (_error) {}
     })
   );
 };

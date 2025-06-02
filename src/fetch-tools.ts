@@ -68,7 +68,7 @@ export async function getInactiveTools(
     _toolsCache = toolDict;
     _toolsCacheTimestamp = currentTime;
     return toolDict;
-  } catch (error) {
+  } catch (_error) {
     // Return empty object if API doesn't exist or has errors
     if (_toolsCache !== null) {
       return _toolsCache;
