@@ -13,8 +13,6 @@ services:
     restart: always
     ports:
       - '12005:3000'
-    environment:
-      - NODE_ENV=production
     depends_on:
       - metatool-postgres
     extra_hosts:
@@ -33,8 +31,8 @@ services:
     restart: always
     ports:
       - '12007:12007'
-    environment:
-      - NODE_ENV=production
+    depends_on:
+      - metatool-postgres
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
